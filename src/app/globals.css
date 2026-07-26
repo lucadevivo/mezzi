@@ -1,26 +1,64 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/*
+ * "Libretto di bordo": antracite da cruscotto notturno, ambra strumenti per l'azione
+ * primaria, numeri in mono tabellare come i tamburi meccanici del contachilometri.
+ */
+@theme {
+  --color-base: #14171a;
+  --color-surface: #1e2328;
+  --color-surface-2: #272d33;
+  --color-line: #343b42;
+  --color-ink: #e8eaed;
+  --color-ink-dim: #9aa3ab;
+  --color-amber: #e8a33d;
+  --color-amber-ink: #14171a;
+  --color-debt: #d9544d;
+  --color-credit: #4fb477;
+
+  --font-sans: var(--font-inter-tight), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  color-scheme: dark;
+  /* Il pollice non deve mai far scivolare la pagina di lato. */
+  overflow-x: hidden;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-base);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  /* Niente rimbalzo elastico sotto la barra delle azioni su iPhone. */
+  overscroll-behavior-y: none;
+}
+
+/* I numeri del contachilometri non devono ballare mentre si aggiornano. */
+.tabular {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+/* Si usa con una mano, in piedi, al buio: niente ritardi da doppio tap. */
+button,
+a,
+input,
+select {
+  touch-action: manipulation;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-amber);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }

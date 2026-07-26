@@ -3,6 +3,7 @@ export * from './money';
 export * from './consumption';
 export * from './price';
 export * from './trip';
+export * from './refuel';
 export * from './balance';
 export * from './expenses';
 export * from './discrepancy';

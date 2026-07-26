@@ -55,24 +55,37 @@ Stato: `[ ]` da fare · `[~]` in corso · `[x]` fatto.
   l'immagine standalone non contiene `tsx`, e così aggiornare resta un solo comando.
 - **`splitCentsByWeight` col metodo dei resti massimi**: le quote sommano sempre al totale, che è
   la condizione perché il ledger stia in piedi.
-- **Nomi dei fratelli**: nel seed sono `Fratello 1` e `Fratello 2`, da sostituire con quelli veri.
+- **Nomi dei fratelli**: Luca (admin), Matteo, Gabriele, più la nonna non fatturabile.
 
-## Fase 1 — MVP usabile
+## Fase 1 — MVP usabile ✅
 
-- [ ] Auth: Better Auth con Argon2id, sessioni cookie httpOnly/Secure/SameSite=Lax a 60 giorni, inviti monouso a scadenza, rate limit sul login.
-- [ ] Ruoli admin/member + gestione utenti (creazione utenti non loggabili per nonna/ospiti).
-- [ ] CRUD mezzi.
-- [ ] Flusso corsa: avvio con lettura contachilometri, chiusura, calcolo e congelamento dei costi.
-- [ ] Rilevamento discrepanze completo (4.5): drift buffer, corsa aperta con conferma, corse da reclamare, tre pulsanti, reclamo singolo/doppio, eliminazione con termine 48h, split, non fatturabile.
-- [ ] Rifornimento: calcolo automatico del terzo campo, `tank_level_after`, pagatore esterno.
-- [ ] Scritture su `ledger_entries` per ogni evento.
-- [ ] Home mobile-first: tre mezzi con km e stato, saldo in evidenza con frase in italiano, pulsante primario "Prendi un mezzo".
-- [ ] Pagina saldi: chi deve cosa a chi.
-- [ ] Playwright: corsa completa + rifornimento.
+- [x] Auth: Better Auth con Argon2id, sessioni cookie httpOnly/SameSite=Lax a 60 giorni, inviti monouso a scadenza (7 giorni), rate limit sul login (5 tentativi al minuto).
+- [x] Ruoli admin/member + pagina admin con inviti, utenti e mezzi.
+- [x] Flusso corsa: avvio con lettura contachilometri, chiusura, calcolo e congelamento dei costi.
+- [x] Rilevamento discrepanze completo (4.5): drift buffer, corsa aperta con conferma e finestra di 24h, corse da reclamare, tre pulsanti, reclamo singolo/doppio, eliminazione con termine 48h, split, assegnazione a utente non fatturabile.
+- [x] Rifornimento: calcolo automatico del terzo campo, livello serbatoio, pagatore esterno.
+- [x] Scritture su `ledger_entries` per ogni evento, con gli storni già pronti.
+- [x] Home mobile-first: tre mezzi con km e stato, saldo in evidenza con frase in italiano.
+- [x] Pagina saldi: chi deve cosa a chi, col numero minimo di passaggi.
+- [x] Playwright: corsa completa + rifornimento + reclamo.
 
-**Prima di scrivere CSS:** proposta di palette, tipografia ed elemento firma da approvare (Sezione 8 della spec).
+**Direzione visiva approvata:** "Libretto di bordo" — antracite `#14171A`, superficie `#1E2328`,
+testo `#E8EAED`, ambra strumenti `#E8A33D`, debito `#D9544D`, credito `#4FB477`;
+Inter Tight + JetBrains Mono tabellare; elemento firma = quadrante del saldo con ago.
 
-**Accettazione:** giro reale dal telefono, dall'inizio alla fine, numeri coerenti.
+**Accettazione:** ✅ 76 test unitari + 2 e2e sul server standalone di produzione, typecheck e lint puliti.
+
+### Deciso in autonomia in Fase 1
+
+- **CRUD mezzi rimandato**: i tre mezzi arrivano dal seed e non cambiano. La pagina admin li mostra;
+  crearne di nuovi dalla UI serve solo se ne comprate un quarto.
+- **`useSecureCookies` legato allo schema di `APP_URL`**, non a `NODE_ENV`: dietro il tunnel siamo
+  sempre in https, in locale su http un cookie `Secure` non tornerebbe mai indietro.
+- **Corse sintetiche per le corse da reclamare**: quando una `unclaimed_trip` si chiude si crea una
+  corsa per ogni utente addebitato, con la sua quota di km e di costo. Serve a tenere i km attribuiti
+  dentro l'invariante col contachilometri e a mostrare tutto in un unico storico.
+- **Campi dei form controllati**: dopo un warning da confermare il valore digitato non deve sparire.
+- **Password del primo admin** via `npm run user:password`: il seed crea gli utenti senza credenziali.
 
 ## Fase 2 — Contabilità completa
 

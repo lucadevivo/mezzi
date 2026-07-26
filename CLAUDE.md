@@ -26,6 +26,7 @@ npm run build          # build di produzione
 npm run db:generate    # genera la migrazione dallo schema Drizzle
 npm run db:migrate     # applica le migrazioni
 npm run db:seed        # seed: mezzi reali + utenti di famiglia
+npm run user:password -- <email> <password>   # primo accesso admin / password persa
 docker compose up -d --build
 ```
 
@@ -38,9 +39,18 @@ src/
     billing/      # LOGICA PURA: nessun import di DB, framework, date "now". Solo funzioni e tipi.
     db/           # schema Drizzle, migrazioni, seed, query
     auth/         # Better Auth, inviti, sessioni
+    services/     # scritture: corse, rifornimenti, reclami, ledger, audit
   components/
-tests/
+tests/e2e/        # Playwright: due flussi, sul server standalone di produzione
 ```
+
+## Direzione visiva — "Libretto di bordo"
+
+Antracite da cruscotto notturno, ambra strumenti per l'azione primaria, numeri in mono tabellare.
+Token in `src/app/globals.css`: `base #14171A`, `surface #1E2328`, `ink #E8EAED`, `amber #E8A33D`,
+`debt #D9544D`, `credit #4FB477`. Inter Tight + JetBrains Mono. Elemento firma: il quadrante del
+saldo (`SaldoGauge`). Ogni mezzo porta il suo colore sul bordo sinistro della card: sbagliare mezzo
+è l'errore più probabile dell'app, e a colpo d'occhio deve essere evidente su cosa si sta agendo.
 
 ## Regole non negoziabili
 

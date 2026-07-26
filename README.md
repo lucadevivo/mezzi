@@ -11,13 +11,18 @@ cp .env.example .env          # e riempi AUTH_SECRET: openssl rand -base64 32
 npm install
 npm run db:migrate
 npm run db:seed               # 3 mezzi reali + utenti di famiglia
+npm run user:password -- luca@mezzi.local "una password lunga"
 npm run dev
 ```
+
+Il seed crea gli utenti senza credenziali: `user:password` serve a far entrare il primo admin.
+Da lì in poi gli altri arrivano con un link di invito generato dalla pagina Admin.
 
 Test e controlli:
 
 ```bash
 npm test          # logica di calcolo (billing/)
+npm run test:e2e  # Playwright: corsa completa, rifornimento, reclamo
 npm run typecheck
 npm run lint
 ```

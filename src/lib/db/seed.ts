@@ -9,17 +9,11 @@ import { user, vehicleMembers, vehicles } from './schema';
 
 const USERS = [
   { id: 'u-luca', name: 'Luca', email: 'luca@mezzi.local', role: 'admin', color: '#e2703a' },
+  { id: 'u-matteo', name: 'Matteo', email: 'matteo@mezzi.local', role: 'member', color: '#3a7ce2' },
   {
-    id: 'u-fratello-1',
-    name: 'Fratello 1',
-    email: 'fratello1@mezzi.local',
-    role: 'member',
-    color: '#3a7ce2',
-  },
-  {
-    id: 'u-fratello-2',
-    name: 'Fratello 2',
-    email: 'fratello2@mezzi.local',
+    id: 'u-gabriele',
+    name: 'Gabriele',
+    email: 'gabriele@mezzi.local',
     role: 'member',
     color: '#3ae28a',
   },

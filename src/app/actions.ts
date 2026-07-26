@@ -1,0 +1,257 @@
+'use server';
+
+import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
+import { z } from 'zod';
+import { completeRefuelAmounts, tripCost } from '@/lib/billing';
+import { acceptInvite, createInvite } from '@/lib/auth/invites';
+import { requireAdmin, requireUser } from '@/lib/auth/session';
+import { getEnv } from '@/lib/env';
+import { recordRefuel } from '@/lib/services/refuels';
+import { checkOdometer, closeTrip, startTrip, takeOverOpenTrip } from '@/lib/services/trips';
+import { respondToUnclaimed } from '@/lib/services/unclaimed';
+
+export interface ActionState {
+  error?: string;
+  /** Warning da confermare: la stessa azione ripetuta con `conferma` passa. */
+  needsConfirm?: boolean;
+}
+
+/** Trasforma "1.234,5" in 1234.5: sul telefono si scrive come viene. */
+const decimal = z
+  .string()
+  .trim()
+  .min(1)
+  .transform((value) => Number(value.replace(/\./g, '').replace(',', '.')))
+  .pipe(z.number().finite());
+
+const optionalDecimal = z
+  .string()
+  .trim()
+  .transform((value) => (value === '' ? null : Number(value.replace(/\./g, '').replace(',', '.'))))
+  .pipe(z.number().finite().positive().nullable());
+
+function fail(error: unknown): ActionState {
+  return { error: error instanceof Error ? error.message : 'Qualcosa è andato storto' };
+}
+
+/* ----------------------------------- corse ---------------------------------- */
+
+export interface OdometerCheckResult {
+  kind: 'ok' | 'unclaimed' | 'open_trip' | 'error';
+  message?: string;
+  /** Km non registrati, quando `kind` è `unclaimed`. */
+  distanceKm?: number;
+  costCents?: number;
+  windowStartAt?: string;
+}
+
+/**
+ * Anteprima prima di avviare: serve a mostrare i tre pulsanti del reclamo
+ * ("li ho fatti io" / "non sono stato io" / "non lo so") invece di addebitare in silenzio.
+ */
+export async function checkOdometerAction(
+  vehicleId: string,
+  odometerKm: number,
+): Promise<OdometerCheckResult> {
+  await requireUser();
+  try {
+    const { state, outcome } = checkOdometer(vehicleId, odometerKm);
+
+    switch (outcome.kind) {
+      case 'negative_delta':
+        return {
+          kind: 'error',
+          message: `Il contachilometri non può tornare indietro: ultimo valore ${state.vehicle.currentOdometerKm} km.`,
+        };
+      case 'propose_close_open_trip':
+        return { kind: 'open_trip', message: 'C’è una corsa aperta: va chiusa prima.' };
+      case 'unclaimed_trip': {
+        const { costCents } = tripCost({
+          distanceKm: outcome.distanceKm,
+          consumptionKmPerLiter: state.consumption.kmPerLiter,
+          unitPriceCents: state.price.pricePerLiterCents,
+        });
+        return {
+          kind: 'unclaimed',
+          distanceKm: outcome.distanceKm,
+          costCents,
+          windowStartAt: outcome.windowStartAt.toISOString(),
+        };
+      }
+      default:
+        return { kind: 'ok' };
+    }
+  } catch (error) {
+    return { kind: 'error', message: error instanceof Error ? error.message : 'Errore' };
+  }
+}
+
+const startTripSchema = z.object({
+  vehicleId: z.string().min(1),
+  odometerKm: decimal,
+  unclaimedAnswer: z.enum(['mine', 'not_mine', 'unknown']).optional(),
+});
+
+export async function startTripAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const user = await requireUser();
+  const parsed = startTripSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return { error: 'Contachilometri non valido' };
+
+  try {
+    startTrip({ ...parsed.data, userId: user.id });
+  } catch (error) {
+    return fail(error);
+  }
+
+  revalidatePath('/');
+  redirect(`/mezzi/${parsed.data.vehicleId}`);
+}
+
+const closeTripSchema = z.object({
+  tripId: z.string().min(1),
+  vehicleId: z.string().min(1),
+  odometerEndKm: decimal,
+  passengerIds: z.array(z.string()).optional(),
+  note: z.string().trim().max(500).optional(),
+  conferma: z.string().optional(),
+});
+
+export async function closeTripAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  await requireUser();
+  const parsed = closeTripSchema.safeParse({
+    ...Object.fromEntries(formData),
+    passengerIds: formData.getAll('passengerIds').map(String),
+  });
+  if (!parsed.success) return { error: 'Contachilometri non valido' };
+
+  try {
+    closeTrip({
+      tripId: parsed.data.tripId,
+      odometerEndKm: parsed.data.odometerEndKm,
+      passengerIds: parsed.data.passengerIds,
+      note: parsed.data.note,
+      confirmWarnings: parsed.data.conferma === 'si',
+    });
+  } catch (error) {
+    return { ...fail(error), needsConfirm: parsed.data.conferma !== 'si' };
+  }
+
+  revalidatePath('/');
+  redirect(`/mezzi/${parsed.data.vehicleId}`);
+}
+
+export async function takeOverTripAction(_prev: ActionState, formData: FormData) {
+  const user = await requireUser();
+  const vehicleId = String(formData.get('vehicleId') ?? '');
+  try {
+    takeOverOpenTrip(vehicleId, user.id, user.id);
+  } catch (error) {
+    return fail(error);
+  }
+  revalidatePath(`/mezzi/${vehicleId}`);
+  return {};
+}
+
+/* ------------------------------- rifornimenti ------------------------------- */
+
+const refuelSchema = z.object({
+  vehicleId: z.string().min(1),
+  payerId: z.string().min(1),
+  odometerKm: decimal,
+  liters: optionalDecimal,
+  pricePerLiter: optionalDecimal,
+  total: optionalDecimal,
+  tankLevelAfter: z.enum(['quarter', 'half', 'three_quarters', 'full']).nullable().catch(null),
+  stationName: z.string().trim().max(100).optional(),
+  conferma: z.string().optional(),
+});
+
+export async function recordRefuelAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  await requireUser();
+  const parsed = refuelSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return { error: 'Dati del rifornimento non validi' };
+
+  const { vehicleId, payerId, odometerKm, liters, pricePerLiter, total } = parsed.data;
+
+  try {
+    const amounts = completeRefuelAmounts({
+      liters,
+      pricePerLiterCents: pricePerLiter === null ? null : Math.round(pricePerLiter * 100),
+      totalCents: total === null ? null : Math.round(total * 100),
+    });
+
+    recordRefuel({
+      vehicleId,
+      userId: payerId,
+      odometerKm,
+      tankLevelAfter: parsed.data.tankLevelAfter,
+      stationName: parsed.data.stationName,
+      confirmOverCapacity: parsed.data.conferma === 'si',
+      ...amounts,
+    });
+  } catch (error) {
+    return { ...fail(error), needsConfirm: parsed.data.conferma !== 'si' };
+  }
+
+  revalidatePath('/');
+  redirect(`/mezzi/${vehicleId}`);
+}
+
+/* --------------------------- corse da reclamare ----------------------------- */
+
+export async function respondUnclaimedAction(_prev: ActionState, formData: FormData) {
+  const user = await requireUser();
+  const id = String(formData.get('unclaimedTripId') ?? '');
+  const answer = formData.get('answer') === 'mine' ? 'mine' : 'not_mine';
+
+  try {
+    respondToUnclaimed(id, user.id, answer);
+  } catch (error) {
+    return fail(error);
+  }
+
+  revalidatePath('/reclami');
+  revalidatePath('/');
+  return {};
+}
+
+/* ---------------------------------- inviti ---------------------------------- */
+
+export async function createInviteAction(): Promise<{ url: string }> {
+  const admin = await requireAdmin();
+  const { token } = createInvite(admin.id);
+  return { url: `${getEnv().APP_URL}/invito/${token}` };
+}
+
+const acceptInviteSchema = z.object({
+  token: z.string().min(1),
+  name: z.string().trim().min(2, 'Serve un nome'),
+  email: z.string().trim().email('Email non valida'),
+  password: z.string().min(10, 'La password deve avere almeno 10 caratteri'),
+});
+
+export async function acceptInviteAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const parsed = acceptInviteSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return { error: parsed.error.issues[0].message };
+
+  try {
+    await acceptInvite(parsed.data);
+  } catch (error) {
+    return fail(error);
+  }
+
+  redirect('/login?registrato=1');
+}
