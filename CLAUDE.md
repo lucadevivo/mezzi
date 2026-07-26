@@ -8,7 +8,7 @@ Spec di riferimento: `SPEC.md`. Piano e stato: `PLAN.md` (tenerlo aggiornato a o
 | Cosa | Scelta | Perché |
 |---|---|---|
 | Framework | Next.js (App Router) + TypeScript strict | full-stack in un container, buon supporto PWA |
-| DB | SQLite + Drizzle ORM | 3-5 utenti; un file solo, backup banale, niente engine binary nell'immagine |
+| DB | SQLite (`better-sqlite3`) + Drizzle ORM | 3-5 utenti; un file solo, backup banale |
 | UI | Tailwind CSS + shadcn/ui | mobile-first, dark mode di default |
 | Auth | Better Auth, hashing Argon2id | l'app è esposta su internet: niente auth fatta a mano |
 | Validazione | Zod, schemi condivisi client/server | |

@@ -1,36 +1,58 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Mezzi
 
-## Getting Started
+App per gestire i mezzi condivisi in famiglia: chi ha consumato quanto, chi deve mettere benzina.
 
-First, run the development server:
+Spec: `SPEC.md` · Piano e stato: `PLAN.md` · Convenzioni per lavorarci: `CLAUDE.md`
+
+## Sviluppo
 
 ```bash
+cp .env.example .env          # e riempi AUTH_SECRET: openssl rand -base64 32
+npm install
+npm run db:migrate
+npm run db:seed               # 3 mezzi reali + utenti di famiglia
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Test e controlli:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm test          # logica di calcolo (billing/)
+npm run typecheck
+npm run lint
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Variabili d'ambiente
 
-## Learn More
+Tutte in `.env`, documentate in `.env.example`. `AUTH_SECRET` è l'unica obbligatoria:
+senza, l'app non parte (ed è voluto).
 
-To learn more about Next.js, take a look at the following resources:
+## Produzione
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+docker compose up -d --build
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+L'app ascolta solo su `127.0.0.1:${PORT}` (default 8430): l'unico ingresso da internet è il
+tunnel Cloudflare verso `mezzi.webluca.app`. Nessuna porta aperta sul router.
+Le migrazioni girano da sole all'avvio del container, quindi aggiornare vuol dire rilanciare
+lo stesso comando.
 
-## Deploy on Vercel
+## Backup e restore
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Il database è un file solo. Backup a caldo, senza fermare l'app:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+docker exec mezzi-app node -e "require('better-sqlite3')('/app/data/mezzi.db').backup('/app/data/backup.db')"
+docker cp mezzi-app:/app/data/backup.db ./mezzi-$(date +%F).db
+```
+
+Restore: ferma il container, sostituisci il file nel volume `mezzi-data`, riavvia.
+
+> La procedura di restore va provata almeno una volta prima di considerare l'app in produzione.
+
+## Aggiungere un utente
+
+Dalla UI, da admin: si genera un link di invito monouso a scadenza. Non esiste registrazione
+aperta. Gli utenti che non devono accedere (nonna, ospiti) si creano senza credenziali:
+le loro corse le registra l'admin.

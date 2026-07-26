@@ -42,10 +42,7 @@ const ROUNDING_STEP_CENTS = 500;
  * "Quanto devo mettere?" — traduce il saldo in un'azione concreta al distributore.
  * Arrotonda ai 5 € in eccesso perché al distributore si mettono cifre tonde.
  */
-export function refuelSuggestion(
-  balanceCents: Cents,
-  pricePerLiterCents: Cents,
-): RefuelSuggestion {
+export function refuelSuggestion(balanceCents: Cents, pricePerLiterCents: Cents): RefuelSuggestion {
   if (balanceCents >= 0) {
     return {
       debtCents: 0,
@@ -85,7 +82,9 @@ export interface Transfer {
  */
 export function settlementPlan(userBalances: ReadonlyMap<UserId, Cents>): Transfer[] {
   const debtors = [...userBalances].filter(([, c]) => c < 0).map(([id, c]) => ({ id, amount: -c }));
-  const creditors = [...userBalances].filter(([, c]) => c > 0).map(([id, c]) => ({ id, amount: c }));
+  const creditors = [...userBalances]
+    .filter(([, c]) => c > 0)
+    .map(([id, c]) => ({ id, amount: c }));
 
   debtors.sort((a, b) => b.amount - a.amount || a.id.localeCompare(b.id));
   creditors.sort((a, b) => b.amount - a.amount || a.id.localeCompare(b.id));
@@ -95,7 +94,8 @@ export function settlementPlan(userBalances: ReadonlyMap<UserId, Cents>): Transf
   let j = 0;
   while (i < debtors.length && j < creditors.length) {
     const amount = Math.min(debtors[i].amount, creditors[j].amount);
-    if (amount > 0) transfers.push({ from: debtors[i].id, to: creditors[j].id, amountCents: amount });
+    if (amount > 0)
+      transfers.push({ from: debtors[i].id, to: creditors[j].id, amountCents: amount });
     debtors[i].amount -= amount;
     creditors[j].amount -= amount;
     if (debtors[i].amount === 0) i++;

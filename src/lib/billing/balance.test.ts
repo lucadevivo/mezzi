@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { balances, ledgerTotal, refuelSuggestion, settlementPlan, unconsumedFuelValueCents } from './balance';
+import {
+  balances,
+  ledgerTotal,
+  refuelSuggestion,
+  settlementPlan,
+  unconsumedFuelValueCents,
+} from './balance';
 import type { LedgerEntry } from './types';
 
 const at = new Date(2026, 6, 20);
@@ -47,7 +53,9 @@ describe('refuelSuggestion', () => {
     const suggestion = refuelSuggestion(-2340, 180);
     expect(suggestion.debtCents).toBe(2340);
     expect(suggestion.suggestedCents).toBe(2500);
-    expect(suggestion.message).toBe('Sei indietro di 23,40 € — al prossimo pieno metti circa 25,00 €.');
+    expect(suggestion.message).toBe(
+      'Sei indietro di 23,40 € — al prossimo pieno metti circa 25,00 €.',
+    );
   });
 
   it('non arrotonda in eccesso un debito già multiplo di 5 euro', () => {
@@ -76,6 +84,13 @@ describe('settlementPlan', () => {
   });
 
   it('non propone niente se sono tutti in pari', () => {
-    expect(settlementPlan(new Map([['luca', 0], ['marco', 0]]))).toEqual([]);
+    expect(
+      settlementPlan(
+        new Map([
+          ['luca', 0],
+          ['marco', 0],
+        ]),
+      ),
+    ).toEqual([]);
   });
 });

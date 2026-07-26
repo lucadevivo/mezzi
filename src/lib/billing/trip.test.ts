@@ -22,9 +22,9 @@ describe('tripCost', () => {
   });
 
   it('rifiuta un consumo non positivo', () => {
-    expect(() => tripCost({ distanceKm: 10, consumptionKmPerLiter: 0, unitPriceCents: 180 })).toThrow(
-      TripError,
-    );
+    expect(() =>
+      tripCost({ distanceKm: 10, consumptionKmPerLiter: 0, unitPriceCents: 180 }),
+    ).toThrow(TripError);
   });
 });
 

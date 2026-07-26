@@ -106,6 +106,7 @@ describe('invarianti su uno scenario completo', () => {
       now: day(13),
     });
     expect(resolution).toEqual({ status: 'split', chargedTo: ['marco', 'giulia'] });
+    if (resolution.status !== 'split') throw new Error('scenario incoerente');
 
     for (const [id, share] of splitCentsAmong(unclaimedCost.costCents, resolution.chargedTo)) {
       charge(id, share, detectedAt);

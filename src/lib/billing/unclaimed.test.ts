@@ -48,7 +48,11 @@ describe('resolveUnclaimed', () => {
       [answer('marco', 'mine'), answer('giulia', 'mine', 2)],
       beforeDeadline,
     );
-    expect(resolution).toEqual({ status: 'claimed', chargedTo: ['marco', 'giulia'], reason: 'claimed' });
+    expect(resolution).toEqual({
+      status: 'claimed',
+      chargedTo: ['marco', 'giulia'],
+      reason: 'claimed',
+    });
   });
 
   it('propone l attribuzione automatica quando resta un solo silenzioso', () => {

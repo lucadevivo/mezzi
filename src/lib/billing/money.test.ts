@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { formatEuro, MoneyError, roundCents, splitCents, splitCentsAmong, splitCentsByWeight } from './money';
+import {
+  formatEuro,
+  MoneyError,
+  roundCents,
+  splitCents,
+  splitCentsAmong,
+  splitCentsByWeight,
+} from './money';
 
 describe('roundCents', () => {
   it('arrotonda half-up in modo simmetrico sui negativi', () => {
@@ -32,18 +39,37 @@ describe('splitCents', () => {
 
 describe('splitCentsByWeight', () => {
   it('divide in proporzione ai km percorsi', () => {
-    const shares = splitCentsByWeight(30000, new Map([['a', 100], ['b', 200]]));
+    const shares = splitCentsByWeight(
+      30000,
+      new Map([
+        ['a', 100],
+        ['b', 200],
+      ]),
+    );
     expect(shares.get('a')).toBe(10000);
     expect(shares.get('b')).toBe(20000);
   });
 
   it('assegna i resti a chi ha la frazione più alta e conserva il totale', () => {
-    const shares = splitCentsByWeight(1000, new Map([['a', 1], ['b', 1], ['c', 1]]));
+    const shares = splitCentsByWeight(
+      1000,
+      new Map([
+        ['a', 1],
+        ['b', 1],
+        ['c', 1],
+      ]),
+    );
     expect([...shares.values()].reduce((a, b) => a + b, 0)).toBe(1000);
   });
 
   it('ricade sulle parti uguali se nessuno ha percorso km', () => {
-    const shares = splitCentsByWeight(900, new Map([['a', 0], ['b', 0]]));
+    const shares = splitCentsByWeight(
+      900,
+      new Map([
+        ['a', 0],
+        ['b', 0],
+      ]),
+    );
     expect(shares.get('a')).toBe(450);
     expect(shares.get('b')).toBe(450);
   });

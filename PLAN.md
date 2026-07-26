@@ -33,16 +33,29 @@ Stato: `[ ]` da fare · `[~]` in corso · `[x]` fatto.
 
 ## Fase 0 — Fondamenta
 
-- [ ] Setup repo: Next.js App Router, TypeScript strict, ESLint + Prettier, struttura cartelle.
-- [ ] `.env.example` + lettura config validata con Zod (fail-fast all'avvio).
-- [ ] Schema DB completo in Drizzle + migrazioni + seed (3 mezzi reali, Luca admin, 2 fratelli, nonna non fatturabile).
-- [ ] Modulo `src/lib/billing/` puro (nessuna dipendenza da DB o framework) con: costo corsa, prezzo di riferimento, calibrazione consumo, saldi, ripartizione spese, macchina a stati delle corse da reclamare, drift buffer.
-- [ ] Test unitari verdi su tutta la Sezione 4 della spec, inclusi i test obbligatori della 4.5 e le due invarianti (somma saldi, somma km).
-- [ ] Docker multi-stage, utente non-root, `docker-compose.yml`, healthcheck, volume persistente.
-- [ ] Endpoint `/api/health`.
-- [ ] `CLAUDE.md` e `PLAN.md`.
+- [x] Setup repo: Next.js App Router, TypeScript strict, ESLint + Prettier, struttura cartelle.
+- [x] `.env.example` + lettura config validata con Zod (fail-fast all'avvio).
+- [x] Schema DB completo in Drizzle + migrazioni + seed (3 mezzi reali, Luca admin, 2 fratelli, nonna non fatturabile).
+- [x] Modulo `src/lib/billing/` puro (nessuna dipendenza da DB o framework) con: costo corsa, prezzo di riferimento, calibrazione consumo, saldi, ripartizione spese, macchina a stati delle corse da reclamare, drift buffer.
+- [x] Test unitari verdi su tutta la Sezione 4 della spec, inclusi i test obbligatori della 4.5 e le due invarianti (somma saldi, somma km).
+- [x] Docker multi-stage, utente non-root, `docker-compose.yml`, healthcheck, volume persistente.
+- [x] Endpoint `/api/health`.
+- [x] `CLAUDE.md` e `PLAN.md`.
 
-**Accettazione:** `docker compose up` funziona, `npm test` verde, il DB si popola col seed, `/api/health` risponde.
+**Accettazione:** ✅ `docker compose up -d --build` avvia il container, `/api/health` risponde
+`{"status":"ok"}`, le migrazioni girano da sole all'avvio, 72 test verdi, seed idempotente.
+
+### Deciso in autonomia in Fase 0
+
+- **Driver SQLite `better-sqlite3` invece di `node:sqlite`.** La documentazione Drizzle indica
+  `drizzle-orm/node-sqlite` (stdlib, nessun modulo nativo da compilare), ma quel sottopercorso
+  non è ancora esportato in `drizzle-orm@0.45.2`. Il commento in `src/lib/db/index.ts` segna il
+  punto in cui tornare indietro quando esce.
+- **Migrazioni via `src/instrumentation.ts`** invece che con uno script separato nel container:
+  l'immagine standalone non contiene `tsx`, e così aggiornare resta un solo comando.
+- **`splitCentsByWeight` col metodo dei resti massimi**: le quote sommano sempre al totale, che è
+  la condizione perché il ledger stia in piedi.
+- **Nomi dei fratelli**: nel seed sono `Fratello 1` e `Fratello 2`, da sostituire con quelli veri.
 
 ## Fase 1 — MVP usabile
 

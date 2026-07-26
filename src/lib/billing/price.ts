@@ -3,8 +3,7 @@ import { TANK_LEVEL_FRACTION, type Cents, type ReferencePrice, type Refuel } fro
 
 /** Un evento che tocca il serbatoio: un rifornimento lo riempie, una corsa lo svuota. */
 export type TankEvent =
-  | { kind: 'refuel'; at: Date; refuel: Refuel }
-  | { kind: 'consumption'; at: Date; liters: number };
+  { kind: 'refuel'; at: Date; refuel: Refuel } | { kind: 'consumption'; at: Date; liters: number };
 
 export interface TankState {
   litersInTank: number;

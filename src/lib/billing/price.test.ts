@@ -23,10 +23,7 @@ const day = (n: number) => new Date(2026, 6, n);
 
 describe('tankState', () => {
   it('mescola i rifornimenti a media ponderata sui litri', () => {
-    const state = tankState(
-      [refuelEvent(day(1), 30, 180), refuelEvent(day(2), 10, 200)],
-      45,
-    );
+    const state = tankState([refuelEvent(day(1), 30, 180), refuelEvent(day(2), 10, 200)], 45);
     expect(state.litersInTank).toBe(40);
     expect(state.avgPriceCents).toBeCloseTo((30 * 180 + 10 * 200) / 40, 6);
   });
