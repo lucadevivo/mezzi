@@ -59,9 +59,10 @@ saldo (`SaldoGauge`). Ogni mezzo porta il suo colore sul bordo sinistro della ca
 3. **`ledger_entries` è append-only.** Nessun UPDATE, nessun DELETE: le correzioni sono righe di storno che referenziano l'originale. Il saldo è sempre `SUM(amount_cents)`.
 4. **Costi congelati alla riga.** Litri, prezzo unitario e costo si scrivono alla chiusura della corsa (o al rilevamento della discrepanza) e non si ricalcolano mai retroattivamente.
 5. **Il contachilometri è l'unica fonte di verità.** Somma dei km attribuiti + km non fatturabili = km reali del mezzo. C'è un test che lo verifica.
-6. **Due invarianti sotto test:** somma dei saldi = 0 (a meno del carburante pagato e non ancora consumato) e somma dei km (punto 5).
-7. **Nessun segreto nel codice.** Tutto da `.env`, con `.env.example` versionato.
-8. **Niente over-engineering.** 3-5 utenti. Monolite leggibile, nessuna astrazione senza un secondo caso d'uso reale.
+6. **Due invarianti sotto test:** somma dei saldi = valore del carburante pagato e non ancora consumato, e somma dei km (punto 5).
+7. **Ogni pieno riconcilia.** I litri del pieno sono il carburante davvero bruciato dal pieno precedente: la differenza rispetto ai litri stimati e già addebitati si redistribuisce con righe `adjustment`. Senza questo passaggio i saldi scivolano via e l'invariante 6 smette di valere.
+8. **Nessun segreto nel codice.** Tutto da `.env`, con `.env.example` versionato.
+9. **Niente over-engineering.** 3-5 utenti. Monolite leggibile, nessuna astrazione senza un secondo caso d'uso reale.
 
 ## Convenzioni
 

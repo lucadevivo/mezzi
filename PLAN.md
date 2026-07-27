@@ -87,15 +87,31 @@ Inter Tight + JetBrains Mono tabellare; elemento firma = quadrante del saldo con
 - **Campi dei form controllati**: dopo un warning da confermare il valore digitato non deve sparire.
 - **Password del primo admin** via `npm run user:password`: il seed crea gli utenti senza credenziali.
 
-## Fase 2 — Contabilità completa
+## Fase 2 — Contabilità completa ✅
 
-- [ ] Spese fisse e manutenzione con le tre regole di ripartizione (`equal`, `by_km`, `none`).
-- [ ] Pareggi con conferma del destinatario.
-- [ ] Calibrazione consumo pieno-a-pieno (media mobile 3-5 valori, scarto outlier >30% dalla mediana, indicazione in UI di stimato vs misurato).
-- [ ] Riconciliazione al rifornimento con righe `adjustment`.
-- [ ] Storico corse/rifornimenti con filtri e correzione tramite storno.
-- [ ] Audit log consultabile dall'admin.
-- [ ] Statistiche di profilo: corse non registrate rilevate/reclamate/negate.
+- [x] Spese fisse e manutenzione con le tre regole di ripartizione (`equal`, `by_km`, `none`).
+- [x] Pareggi con conferma del destinatario: finché non conferma, i saldi non si muovono.
+- [x] Calibrazione consumo pieno-a-pieno (media mobile su 5, minimo 3 campioni, scarto outlier oltre il 30% dalla mediana, indicazione in UI di stimato vs misurato).
+- [x] Riconciliazione al rifornimento con righe `adjustment`.
+- [x] Storico corse/rifornimenti con filtri (mezzo, utente, tipo) e correzione tramite storno.
+- [x] Audit log consultabile dall'admin.
+- [x] Statistiche pubbliche: corse non registrate rilevate/reclamate/negate, sulla pagina saldi.
+
+**Accettazione:** ✅ 85 test unitari + 1 test di integrazione sulla riconciliazione via DB + 4 e2e.
+
+### Deciso in autonomia in Fase 2
+
+- **La riconciliazione usa i litri come peso**, non i km: due corse sullo stesso mezzo con consumi
+  ricalibrati diversi devono pesare per quanto hanno davvero bruciato.
+- **Guardia al 50% di scostamento**: oltre, la riconciliazione si ferma. Uno scarto del genere è
+  quasi sempre un rifornimento marcato "pieno" che pieno non era, non un consumo diverso;
+  correggere sulla base di un dato falso è peggio che non correggere.
+- **Lo storno di una corsa non tocca i km attribuiti**: i chilometri sono stati percorsi davvero,
+  è solo l'addebito a essere sbagliato. Sposta soldi, non la realtà del contachilometri.
+- **`splitRule` `custom` non esposta in UI**: la logica c'è ed è testata, ma un form per le quote
+  manuali serve solo quando servirà davvero.
+- **Statistiche dei reclami sulla pagina saldi** invece che su un profilo dedicato: il senso è che
+  siano pubbliche, e i saldi è la pagina che guardate tutti.
 
 ## Fase 3 — PWA e affidabilità sul campo
 

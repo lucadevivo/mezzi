@@ -4,6 +4,7 @@ export * from './consumption';
 export * from './price';
 export * from './trip';
 export * from './refuel';
+export * from './reconciliation';
 export * from './balance';
 export * from './expenses';
 export * from './discrepancy';

@@ -2,6 +2,7 @@ import { Card, EmptyState } from '@/components/ui';
 import { requireUser } from '@/lib/auth/session';
 import { formatEuro } from '@/lib/format';
 import { getSettlementPlan, listBalances } from '@/lib/services/balances';
+import { claimStatsFor } from '@/lib/services/history';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,26 +19,34 @@ export default async function BalancesPage() {
     <div className="space-y-6">
       <section className="space-y-3">
         <h1 className="text-sm uppercase tracking-widest text-ink-dim">Saldi</h1>
-        {billable.map((b) => (
-          <Card
-            key={b.userId}
-            accent={b.color}
-            className="flex items-center justify-between px-4 py-3"
-          >
-            <span className="font-medium">{b.name}</span>
-            <span
-              className={`tabular text-lg ${
-                b.balanceCents < 0
-                  ? 'text-debt'
-                  : b.balanceCents > 0
-                    ? 'text-credit'
-                    : 'text-ink-dim'
-              }`}
-            >
-              {formatEuro(b.balanceCents)}
-            </span>
-          </Card>
-        ))}
+        {billable.map((b) => {
+          const stats = claimStatsFor(b.userId);
+          return (
+            <Card key={b.userId} accent={b.color} className="px-4 py-3">
+              <div className="flex items-center justify-between">
+                <span className="font-medium">{b.name}</span>
+                <span
+                  className={`tabular text-lg ${
+                    b.balanceCents < 0
+                      ? 'text-debt'
+                      : b.balanceCents > 0
+                        ? 'text-credit'
+                        : 'text-ink-dim'
+                  }`}
+                >
+                  {formatEuro(b.balanceCents)}
+                </span>
+              </div>
+              {/* Pubblica di proposito: chi nega sempre, alla lunga, si vede. */}
+              {stats.detected + stats.claimed + stats.denied > 0 ? (
+                <p className="tabular mt-1 text-xs text-ink-dim">
+                  corse non registrate: {stats.detected} rilevate · {stats.claimed} reclamate ·{' '}
+                  {stats.denied} negate
+                </p>
+              ) : null}
+            </Card>
+          );
+        })}
       </section>
 
       <section className="space-y-3">
@@ -56,7 +65,8 @@ export default async function BalancesPage() {
           ))
         )}
         <p className="text-xs text-ink-dim">
-          I pareggi si registrano dalla Fase 2: per ora questa è la fotografia di chi ha anticipato.
+          Quando pagate, registratelo in <span className="text-ink">Pareggi</span>: il saldo si
+          muove solo quando chi riceve conferma.
         </p>
       </section>
 

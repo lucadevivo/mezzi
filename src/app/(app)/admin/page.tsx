@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { InviteGenerator } from '@/components/invite-generator';
 import { Card } from '@/components/ui';
 import { requireAdmin } from '@/lib/auth/session';
@@ -18,6 +19,12 @@ export default async function AdminPage() {
       <section className="space-y-3">
         <h1 className="text-sm uppercase tracking-widest text-ink-dim">Inviti</h1>
         <InviteGenerator />
+        <Link
+          href="/admin/audit"
+          className="flex min-h-12 w-full items-center justify-center rounded-xl border border-line bg-surface-2 text-base font-medium"
+        >
+          Audit log
+        </Link>
       </section>
 
       <section className="space-y-3">

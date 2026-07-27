@@ -26,6 +26,8 @@ export default defineConfig({
       'npm run db:migrate',
       'npm run db:seed',
       'npm run user:password -- luca@mezzi.local passwordlunga123',
+      // Serve un secondo utente: un pareggio vale solo se lo conferma chi riceve.
+      'npm run user:password -- matteo@mezzi.local passwordlunga456',
       // Il server standalone gira nella propria cartella: gli servono statici e migrazioni lì.
       'cp -r .next/static .next/standalone/.next/',
       'cp -r drizzle .next/standalone/',
