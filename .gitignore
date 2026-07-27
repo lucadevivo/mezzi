@@ -54,3 +54,5 @@ next-env.d.ts
 
 # Sessioni salvate dai test
 /tests/e2e/.auth
+
+/test-results

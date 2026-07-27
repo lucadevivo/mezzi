@@ -139,11 +139,30 @@ Inter Tight + JetBrains Mono tabellare; elemento firma = quadrante del saldo con
   vera, non si alza per far contenti i test — si fa login una volta in un progetto di setup.
 - **Chiavi VAPID facoltative**: se mancano, l'app parte lo stesso e le notifiche restano spente.
 
-## Fase 4 — Scadenze, statistiche, esportazione
+## Fase 4 — Scadenze, statistiche, esportazione ✅
 
-- [ ] Scadenze (assicurazione, bollo, revisione, tagliando a km) con avvisi anticipati.
-- [ ] Dashboard: km per utente/mese, costo per utente, costo medio al km, andamento del consumo reale, mezzo più usato.
-- [ ] Export CSV + riepilogo mensile stampabile.
+- [x] Scadenze (assicurazione, bollo, revisione, tagliando a km) con avvisi anticipati configurabili e notifica una volta sola per scadenza.
+- [x] Dashboard: km per utente/mese, costo per utente, costo medio al km, andamento del consumo reale, mezzo più usato.
+- [x] Export CSV (corse, rifornimenti, spese, movimenti) + riepilogo mensile stampabile.
+
+**Accettazione:** ✅ 99 test unitari, 1 di integrazione, 11 e2e; dashboard verificata a video.
+
+### Deciso in autonomia in Fase 4
+
+- **Palette ricalibrata col validatore.** I colori dei mezzi erano scelti a occhio: Fiat 500 e
+  Scarabeo avevano ΔE 5,8 in deuteranopia, cioè indistinguibili — proprio l'errore che il colore
+  del mezzo dovrebbe impedire. Ora tutte le palette passano banda di luminosità, soglia di croma,
+  separazione sotto daltonismo e contrasto sul fondo scuro. **Se cambi un colore, rivalidalo.**
+- **Navigazione riorganizzata.** Nove voci in una riga sfondavano la larghezza del telefono e
+  "Admin" era irraggiungibile. Ora l'intestazione tiene Saldi, Reclami e "Altro"; il resto sta
+  nella pagina Altro con i suoi contatori.
+- **Il tastierino ha un tasto "Fatto"**: aperto copriva il pulsante di conferma sotto.
+- **Giorni di calendario, non blocchi di 24 ore**: una scadenza al primo agosto, guardata il 27
+  luglio, dice "mancano 5 giorni" a qualsiasi ora la si guardi.
+- **Grafici in SVG scritti a mano**, nessuna libreria: due forme in croce e niente da scaricare su
+  una connessione da garage. Etichette diritte invece del tooltip — su un telefono non c'è hover.
+- **CSV con punto e virgola e decimali con la virgola**, più BOM: è quello che Excel italiano
+  si aspetta, e un export che si apre storto non serve a niente.
 
 ## Fase 5 — Integrazioni (da valutare insieme)
 

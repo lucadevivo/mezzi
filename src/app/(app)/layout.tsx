@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { OfflineSync } from '@/components/offline-sync';
 import { requireUser } from '@/lib/auth/session';
+import { listDeadlines, notifyDueDeadlines } from '@/lib/services/deadlines';
 import { notifyUnclaimedResolved, remindOpenTrips } from '@/lib/services/notifications';
 import { pendingConfirmationsFor } from '@/lib/services/settlements';
 import { listPendingUnclaimed, resolveExpiredUnclaimed } from '@/lib/services/unclaimed';
@@ -27,9 +28,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     await notifyUnclaimedResolved(resolved.id, resolved.chargedTo, resolved.status);
   }
   await remindOpenTrips();
+  await notifyDueDeadlines();
 
   const pendingClaims = listPendingUnclaimed().length;
   const pendingSettlements = pendingConfirmationsFor(user.id).length;
+  const dueDeadlines = listDeadlines().filter((row) => row.status.state !== 'ok').length;
+  const elsewhere = pendingSettlements + dueDeadlines;
 
   return (
     <div className="mx-auto flex w-full max-w-md flex-1 flex-col">
@@ -40,14 +44,14 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           </Link>
           <span className="text-sm text-ink-dim">{user.name}</span>
         </div>
-        <nav className="mt-2 flex items-center gap-4 text-sm text-ink-dim">
+        {/*
+          Tre voci e basta: su un telefono una barra da nove link non ci sta in
+          larghezza, e quelli in fondo diventano irraggiungibili. Il resto sta in "Altro".
+        */}
+        <nav className="mt-2 flex items-center gap-5 text-sm text-ink-dim">
           <NavLink href="/saldi" label="Saldi" />
           <NavLink href="/reclami" label="Reclami" badge={pendingClaims} />
-          <NavLink href="/spese" label="Spese" />
-          <NavLink href="/pareggi" label="Pareggi" badge={pendingSettlements} />
-          <NavLink href="/storico" label="Storico" />
-          <NavLink href="/impostazioni" label="Impostazioni" />
-          {user.role === 'admin' ? <NavLink href="/admin" label="Admin" /> : null}
+          <NavLink href="/altro" label="Altro" badge={elsewhere} />
         </nav>
       </header>
       <OfflineSync />

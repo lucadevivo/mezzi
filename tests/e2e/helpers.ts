@@ -13,4 +13,6 @@ export async function enterOdometer(page: Page, label: string, value: string) {
     await page.getByRole('button', { name: digit, exact: true }).click();
   }
   await expect(page.getByLabel(label)).toHaveValue(value);
+  // Chiude il tastierino: aperto copre il pulsante di conferma sotto.
+  await page.getByRole('button', { name: 'Fatto' }).click();
 }

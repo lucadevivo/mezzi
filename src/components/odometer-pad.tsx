@@ -52,18 +52,28 @@ export function OdometerPad({
       {hint ? <p className="mt-1 text-xs text-ink-dim">{hint}</p> : null}
 
       {padOpen ? (
-        <div className="mt-3 grid grid-cols-3 gap-2">
-          {KEYS.map((key) => (
-            <button
-              key={key}
-              type="button"
-              aria-label={key === '⌫' ? 'Cancella una cifra' : key === 'C' ? 'Azzera' : key}
-              onClick={() => press(key)}
-              className="tabular min-h-16 rounded-xl border border-line bg-surface-2 text-2xl text-ink active:bg-surface"
-            >
-              {key}
-            </button>
-          ))}
+        <div className="mt-3 space-y-2">
+          <div className="grid grid-cols-3 gap-2">
+            {KEYS.map((key) => (
+              <button
+                key={key}
+                type="button"
+                aria-label={key === '⌫' ? 'Cancella una cifra' : key === 'C' ? 'Azzera' : key}
+                onClick={() => press(key)}
+                className="tabular min-h-16 rounded-xl border border-line bg-surface-2 text-2xl text-ink active:bg-surface"
+              >
+                {key}
+              </button>
+            ))}
+          </div>
+          {/* Il tastierino è alto: finché resta aperto copre il pulsante sotto. */}
+          <button
+            type="button"
+            onClick={() => setPadOpen(false)}
+            className="min-h-12 w-full rounded-xl border border-line text-base text-ink-dim"
+          >
+            Fatto
+          </button>
         </div>
       ) : null}
     </div>

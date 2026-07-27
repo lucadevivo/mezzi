@@ -7,6 +7,7 @@ import { completeRefuelAmounts, tripCost } from '@/lib/billing';
 import { acceptInvite, createInvite } from '@/lib/auth/invites';
 import { requireAdmin, requireUser } from '@/lib/auth/session';
 import { getEnv } from '@/lib/env';
+import { completeDeadline, createDeadline } from '@/lib/services/deadlines';
 import { recordExpense, reverseExpense } from '@/lib/services/expenses';
 import { reverseRefuel, reverseTrip } from '@/lib/services/history';
 import {
@@ -370,6 +371,54 @@ export async function reverseAction(_prev: ActionState, formData: FormData): Pro
   revalidatePath('/storico');
   revalidatePath('/saldi');
   revalidatePath('/');
+  return {};
+}
+
+/* --------------------------------- scadenze --------------------------------- */
+
+const deadlineSchema = z.object({
+  vehicleId: z.string().min(1),
+  type: z.enum(['assicurazione', 'bollo', 'revisione', 'tagliando']),
+  dueDate: z.string().optional(),
+  dueOdometerKm: optionalDecimal,
+  notifyDaysBefore: z.coerce.number().int().positive().max(365).default(15),
+});
+
+export async function createDeadlineAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const me = await requireUser();
+  const parsed = deadlineSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return { error: 'Dati della scadenza non validi' };
+
+  try {
+    createDeadline(
+      {
+        vehicleId: parsed.data.vehicleId,
+        type: parsed.data.type,
+        dueDate: parseDay(parsed.data.dueDate),
+        dueOdometerKm: parsed.data.dueOdometerKm,
+        notifyDaysBefore: parsed.data.notifyDaysBefore,
+      },
+      me.id,
+    );
+  } catch (error) {
+    return fail(error);
+  }
+
+  revalidatePath('/scadenze');
+  redirect('/scadenze');
+}
+
+export async function completeDeadlineAction(_prev: ActionState, formData: FormData) {
+  const me = await requireUser();
+  try {
+    completeDeadline(String(formData.get('deadlineId') ?? ''), me.id);
+  } catch (error) {
+    return fail(error);
+  }
+  revalidatePath('/scadenze');
   return {};
 }
 

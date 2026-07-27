@@ -5,17 +5,23 @@ import { user, vehicleMembers, vehicles } from './schema';
 /**
  * Seed idempotente: gli id sono fissi, quindi rilanciarlo non duplica niente.
  * Le credenziali non si seminano: si arriva con un invito (Fase 1).
+ *
+ * I colori non sono scelti a occhio: sono passati dal validatore della palette
+ * (banda di luminosita per fondo scuro, separazione sotto daltonismo, contrasto).
+ * La coppia Fiat 500 / Scarabeo con i colori di prima era indistinguibile in
+ * deuteranopia, cioe' esattamente l'errore che i colori dovrebbero impedire.
+ * Se li cambi, rivalidali prima.
  */
 
 const USERS = [
-  { id: 'u-luca', name: 'Luca', email: 'luca@mezzi.local', role: 'admin', color: '#e2703a' },
-  { id: 'u-matteo', name: 'Matteo', email: 'matteo@mezzi.local', role: 'member', color: '#3a7ce2' },
+  { id: 'u-luca', name: 'Luca', email: 'luca@mezzi.local', role: 'admin', color: '#c9622f' },
+  { id: 'u-matteo', name: 'Matteo', email: 'matteo@mezzi.local', role: 'member', color: '#2f6ac2' },
   {
     id: 'u-gabriele',
     name: 'Gabriele',
     email: 'gabriele@mezzi.local',
     role: 'member',
-    color: '#3ae28a',
+    color: '#2a9d63',
   },
 ] as const;
 
@@ -24,7 +30,7 @@ const NONNA = {
   name: 'Nonna',
   email: 'nonna@mezzi.local',
   role: 'member',
-  color: '#b08fd8',
+  color: '#8a5fc0',
 } as const;
 
 const VEHICLES = [
@@ -36,7 +42,7 @@ const VEHICLES = [
     declaredConsumptionKmL: 16,
     tankCapacityL: 42,
     discrepancyThresholdKm: 5,
-    color: '#4f83cc',
+    color: '#3f7fd0',
     icon: 'car',
     ownerNote: 'Mezzo di casa',
   },
@@ -48,7 +54,7 @@ const VEHICLES = [
     declaredConsumptionKmL: 17,
     tankCapacityL: 35,
     discrepancyThresholdKm: 5,
-    color: '#d4a03a',
+    color: '#c9682f',
     icon: 'car',
     ownerNote: 'È della nonna, ce la presta',
   },
@@ -60,7 +66,7 @@ const VEHICLES = [
     declaredConsumptionKmL: 30,
     tankCapacityL: 8,
     discrepancyThresholdKm: 3,
-    color: '#5fbf6a',
+    color: '#2f9d8b',
     icon: 'scooter',
     ownerNote: null,
   },
@@ -78,11 +84,14 @@ function seed() {
   // i suoi euro restano fuori dai conti tra fratelli. Solo l'admin scrive per lei.
   db.insert(user)
     .values({ ...NONNA, billable: false, canLogin: false })
-    .onConflictDoNothing()
+    .onConflictDoUpdate({ target: user.id, set: { color: NONNA.color } })
     .run();
 
   for (const v of VEHICLES) {
-    db.insert(vehicles).values(v).onConflictDoNothing().run();
+    db.insert(vehicles)
+      .values(v)
+      .onConflictDoUpdate({ target: vehicles.id, set: { color: v.color } })
+      .run();
     for (const u of USERS) {
       db.insert(vehicleMembers)
         .values({ id: randomUUID(), vehicleId: v.id, userId: u.id, shareFixedCosts: true })

@@ -62,6 +62,13 @@ Token in `src/app/globals.css`: `base #14171A`, `surface #1E2328`, `ink #E8EAED`
 saldo (`SaldoGauge`). Ogni mezzo porta il suo colore sul bordo sinistro della card: sbagliare mezzo
 è l'errore più probabile dell'app, e a colpo d'occhio deve essere evidente su cosa si sta agendo.
 
+**I colori identitari di utenti e mezzi (nel seed) sono validati, non scelti a occhio**: banda di
+luminosità per fondo scuro, soglia di croma, separazione sotto daltonismo, contrasto. La coppia
+Fiat 500 / Scarabeo di prima era indistinguibile in deuteranopia. Se ne cambi uno, rivalida.
+
+L'intestazione tiene tre voci (Saldi, Reclami, Altro): su un telefono una barra più lunga sfonda
+la larghezza e le voci in fondo diventano irraggiungibili.
+
 ## Regole non negoziabili
 
 1. **`src/lib/billing/` resta puro.** Nessuna dipendenza da DB, framework o clock di sistema: il tempo si passa come parametro. Ogni formula ha un test.
