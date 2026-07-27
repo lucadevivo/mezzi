@@ -9,4 +9,8 @@ export async function register() {
   const { db } = await import('@/lib/db');
 
   migrate(db, { migrationsFolder: './drizzle' });
+
+  // Primo avvio su un volume vuoto: mezzi e utenti di famiglia.
+  const { seedIfEmpty } = await import('@/lib/db/seed');
+  seedIfEmpty();
 }

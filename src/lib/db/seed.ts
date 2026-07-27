@@ -72,7 +72,7 @@ const VEHICLES = [
   },
 ] as const;
 
-function seed() {
+export function seed() {
   for (const u of USERS) {
     db.insert(user)
       .values({ ...u, billable: true, canLogin: true })
@@ -109,4 +109,16 @@ function seed() {
   console.log(`Seed completato: ${USERS.length + 1} utenti, ${VEHICLES.length} mezzi.`);
 }
 
-seed();
+/**
+ * Popola solo un database appena creato. Serve al primo avvio in produzione, dove
+ * non c'e' `tsx` per lanciare gli script: un redeploy non deve richiedere passi manuali.
+ * Se c'e' gia' anche un solo utente, non tocca niente.
+ */
+export function seedIfEmpty(): boolean {
+  if (db.select().from(user).limit(1).get()) return false;
+  seed();
+  return true;
+}
+
+// Eseguito direttamente (`npm run db:seed`), non importato.
+if (process.argv[1]?.endsWith('seed.ts')) seed();
