@@ -28,6 +28,8 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 # Le migrazioni girano all'avvio: i file SQL devono essere nell'immagine.
 COPY --from=builder --chown=nextjs:nodejs /app/drizzle ./drizzle
+# Script di manutenzione eseguibili con `docker exec` (niente tsx qui dentro).
+COPY --from=builder --chown=nextjs:nodejs /app/scripts/set-password.mjs ./scripts/
 
 RUN mkdir -p /app/data && chown -R nextjs:nodejs /app/data
 USER nextjs
