@@ -53,21 +53,48 @@ tunnel Cloudflare verso `mezzi.webluca.app`. Nessuna porta aperta sul router.
 Le migrazioni girano da sole all'avvio del container, quindi aggiornare vuol dire rilanciare
 lo stesso comando.
 
-## Backup e restore
+## Deploy su luca-server
 
-Il database è un file solo. Backup a caldo, senza fermare l'app:
+L'app gira in `~/apps/mezzi` su luca-server, dietro il tunnel Cloudflare già esistente,
+su **https://mezzi.webluca.app**. Il container sta nella rete `turni_default` perché è lì
+che vive `cloudflared`, che raggiunge i servizi per nome.
+
+Aggiornare (dalla macchina di sviluppo):
 
 ```bash
-docker exec mezzi-app node -e "require('better-sqlite3')('/app/data/mezzi.db').backup('/app/data/backup.db')"
-docker cp mezzi-app:/app/data/backup.db ./mezzi-$(date +%F).db
+git archive --format=tar HEAD | gzip | ssh -p 52222 luca-server 'tar xzf - -C ~/apps/mezzi'
+ssh -p 52222 luca-server 'cd ~/apps/mezzi && docker compose -f docker-compose.yml -f docker-compose.server.yml up -d --build'
 ```
 
-Restore: ferma il container, sostituisci il file nel volume `mezzi-data`, riavvia.
+Migrazioni e seed girano da soli all'avvio: su un volume vuoto l'app si popola da sola.
 
-> La procedura di restore va provata almeno una volta prima di considerare l'app in produzione.
+## Backup e restore
+
+```bash
+./scripts/backup.sh                                  # in cron ogni notte alle 4
+./scripts/restore.sh ~/backups/mezzi/mezzi-*.db.gz   # ripristino
+```
+
+Il backup usa `.backup` di SQLite, non `cp`: copiare il file mentre l'app scrive dà un backup
+rotto in silenzio. Il restore non cancella niente — mette da parte il database attuale come
+`mezzi.db.pre-restore-<data>` dentro il volume, così si può sempre tornare indietro.
+Retention 30 giorni, configurabile con `MEZZI_BACKUP_RETENTION_DAYS`.
+
+> **Provato il 27/07/2026 in produzione**: registrato un rifornimento vero, ripristinato il
+> backup precedente, verificato che il rifornimento era sparito, che gli utenti c'erano ancora
+> e che il login funzionava. Da rifare se cambia lo schema del database.
 
 ## Aggiungere un utente
 
 Dalla UI, da admin: si genera un link di invito monouso a scadenza. Non esiste registrazione
 aperta. Gli utenti che non devono accedere (nonna, ospiti) si creano senza credenziali:
 le loro corse le registra l'admin.
+
+Password persa, o primo accesso su un'installazione nuova:
+
+```bash
+# in sviluppo
+npm run user:password -- luca@mezzi.local "una password lunga"
+# in produzione (l'immagine non contiene tsx)
+docker exec mezzi-app node scripts/set-password.mjs luca@mezzi.local "una password lunga"
+```

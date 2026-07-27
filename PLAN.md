@@ -173,7 +173,22 @@ Inter Tight + JetBrains Mono tabellare; elemento firma = quadrante del saldo con
 
 ## Trasversale (non una fase)
 
-- [ ] Security headers (CSP, HSTS, X-Frame-Options), protezione CSRF, nessun dato sensibile nei log.
-- [ ] Backup: dump giornaliero con retention, procedura di restore documentata **e testata almeno una volta**.
-- [ ] `README.md`: setup dev, variabili, aggiornamento, backup/restore, aggiunta utente.
-- [ ] Valutazione Cloudflare Access davanti al tunnel (validazione `Cf-Access-Jwt-Assertion`, app funzionante anche senza).
+- [x] Security headers (CSP, HSTS, X-Frame-Options), protezione CSRF, nessun dato sensibile nei log.
+- [x] Backup: dump giornaliero con retention, procedura di restore documentata **e testata almeno una volta**.
+- [x] `README.md`: setup dev, variabili, aggiornamento, backup/restore, aggiunta utente.
+- [x] **Deploy in produzione**: `https://mezzi.webluca.app`, container in `~/apps/mezzi` su luca-server, dentro la rete `turni_default` dove vive `cloudflared`. Backup in cron ogni notte alle 4.
+- [ ] Valutazione Cloudflare Access davanti al tunnel (validazione `Cf-Access-Jwt-Assertion`, app funzionante anche senza) — proposta pronta, decisione all'utente.
+
+### Restore provato in produzione — 27/07/2026
+
+Non basta che lo script esista. Procedura eseguita davvero, sull'installazione vera:
+
+1. Backup del database appena seminato.
+2. Registrato un rifornimento vero passando dall'app (38 l, contachilometri a 120.450).
+3. Verificato che fosse a database: 1 rifornimento, contachilometri aggiornato.
+4. Lanciato `restore.sh` sul backup del punto 1.
+5. Verificato il ritorno allo stato precedente: 0 rifornimenti, contachilometri a 0, i 4 utenti
+   ancora lì, `/api/health` a posto, `https://mezzi.webluca.app` raggiungibile e login funzionante.
+
+Il database di prima resta nel volume come `mezzi.db.pre-restore-<data>`: un restore sbagliato non
+è irreversibile. **Da rifare a ogni cambio di schema.**
