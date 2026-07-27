@@ -1,0 +1,16 @@
+# Override per luca-server. Deploy:
+#   docker compose -f docker-compose.yml -f docker-compose.server.yml up -d --build
+#
+# Sul server il tunnel Cloudflare gira come container nella rete `turni_default` e
+# raggiunge i servizi per nome: perché `mezzi.webluca.app` funzioni, questo container
+# deve stare in quella rete. Il binding su 127.0.0.1 resta per poter fare diagnosi
+# dal server senza passare da internet.
+services:
+  app:
+    networks:
+      - default
+      - turni_default
+
+networks:
+  turni_default:
+    external: true
