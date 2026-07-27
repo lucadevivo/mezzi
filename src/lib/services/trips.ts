@@ -50,6 +50,11 @@ export interface StartTripInput {
   odometerKm: number;
   /** Risposta alla discrepanza rilevata, se ce n'è una. */
   unclaimedAnswer?: UnclaimedAnswer;
+  /**
+   * Id deciso dal client. Serve alle corse avviate offline: il telefono lo genera
+   * subito, così può anche chiuderle prima che la coda arrivi al server.
+   */
+  tripId?: string;
   now?: Date;
 }
 
@@ -78,7 +83,7 @@ export function startTrip(input: StartTripInput): StartTripResult {
   }
 
   let unclaimedTripId: string | undefined;
-  const tripId = randomUUID();
+  const tripId = input.tripId ?? randomUUID();
 
   db.transaction((tx) => {
     if (outcome.kind === 'drift_absorbed') {

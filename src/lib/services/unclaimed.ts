@@ -250,19 +250,25 @@ export function respondToUnclaimed(
  * Chiude le corse il cui termine è scaduto. Gira su richiesta, quando qualcuno apre
  * l'app: con quattro utenti non serve uno scheduler per una cosa che accade due volte l'anno.
  */
-export function resolveExpiredUnclaimed(now = new Date()): number {
+export interface ResolvedUnclaimed {
+  id: string;
+  status: 'claimed' | 'split';
+  chargedTo: string[];
+}
+
+export function resolveExpiredUnclaimed(now = new Date()): ResolvedUnclaimed[] {
   const expired = db
     .select()
     .from(unclaimedTrips)
     .where(and(eq(unclaimedTrips.status, 'pending'), lte(unclaimedTrips.deadlineAt, now)))
     .all();
 
-  let closed = 0;
+  const closed: ResolvedUnclaimed[] = [];
   for (const row of expired) {
     const resolution = currentResolution(row, now);
     if (resolution.status === 'pending') continue;
     db.transaction((tx) => applyResolution(row.id, resolution, now, tx));
-    closed += 1;
+    closed.push({ id: row.id, status: resolution.status, chargedTo: resolution.chargedTo });
   }
   return closed;
 }

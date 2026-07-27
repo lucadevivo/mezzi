@@ -1,9 +1,8 @@
 import { eq } from 'drizzle-orm';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { CloseTripForm } from '@/components/close-trip-form';
-import { StartTripForm } from '@/components/start-trip-form';
 import { TakeOverButton } from '@/components/take-over-button';
+import { TripPanel } from '@/components/trip-panel';
 import { Card } from '@/components/ui';
 import { requireUser } from '@/lib/auth/session';
 import { db } from '@/lib/db';
@@ -75,19 +74,7 @@ export default async function VehiclePage({ params }: { params: Promise<{ id: st
         </dl>
       </Card>
 
-      {openTrip && openTrip.userId === me.id ? (
-        <section className="space-y-3">
-          <h2 className="text-sm uppercase tracking-widest text-ink-dim">
-            Corsa in corso · {formatSince(openTrip.startedAt)}
-          </h2>
-          <CloseTripForm
-            tripId={openTrip.id}
-            vehicleId={vehicle.id}
-            odometerStartKm={openTrip.odometerStartKm}
-            passengers={passengers}
-          />
-        </section>
-      ) : openTrip ? (
+      {openTrip && openTrip.userId !== me.id ? (
         <section className="space-y-3">
           <Card className="px-4 py-4">
             <p className="font-medium">
@@ -101,8 +88,23 @@ export default async function VehiclePage({ params }: { params: Promise<{ id: st
         </section>
       ) : (
         <section className="space-y-3">
-          <h2 className="text-sm uppercase tracking-widest text-ink-dim">Prendi il mezzo</h2>
-          <StartTripForm vehicleId={vehicle.id} currentOdometerKm={vehicle.currentOdometerKm} />
+          <h2 className="text-sm uppercase tracking-widest text-ink-dim">
+            {openTrip ? `Corsa in corso · ${formatSince(openTrip.startedAt)}` : 'Prendi il mezzo'}
+          </h2>
+          <TripPanel
+            vehicleId={vehicle.id}
+            currentOdometerKm={vehicle.currentOdometerKm}
+            serverTrip={
+              openTrip
+                ? {
+                    id: openTrip.id,
+                    odometerStartKm: openTrip.odometerStartKm,
+                    startedAt: openTrip.startedAt.toISOString(),
+                  }
+                : null
+            }
+            passengers={passengers}
+          />
         </section>
       )}
 

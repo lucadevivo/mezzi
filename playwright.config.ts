@@ -5,9 +5,11 @@ const PORT = 3011;
 /** Assoluto: il server standalone si sposta nella sua cartella prima di partire. */
 const DATABASE_PATH = resolve('./data/e2e.db');
 
+const phone = devices['Pixel 7'];
+
 /**
- * Due flussi soltanto, quelli che devono funzionare o l'app non serve:
- * una corsa dall'inizio alla fine e un rifornimento.
+ * I flussi che devono funzionare o l'app non serve: una corsa dall'inizio alla fine,
+ * un rifornimento, un pareggio a due utenti e una corsa registrata senza rete.
  * Girano sullo stesso server standalone dell'immagine di produzione, su un DB usa e getta.
  */
 export default defineConfig({
@@ -17,9 +19,18 @@ export default defineConfig({
   use: {
     baseURL: `http://127.0.0.1:${PORT}`,
     // Viewport da telefono, motore Chromium: WebKit servirebbe solo a testare Safari,
-    // e per questi due flussi non cambia niente.
-    ...devices['Pixel 7'],
+    // e per questi flussi non cambia niente.
+    ...phone,
   },
+  projects: [
+    { name: 'setup', testMatch: /auth\.setup\.ts/ },
+    {
+      name: 'app',
+      dependencies: ['setup'],
+      testIgnore: /auth\.setup\.ts/,
+      use: { ...phone, storageState: 'tests/e2e/.auth/luca.json' },
+    },
+  ],
   webServer: {
     command: [
       `rm -f ${DATABASE_PATH}*`,

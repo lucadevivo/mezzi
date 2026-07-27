@@ -32,6 +32,16 @@ npm run lint
 Tutte in `.env`, documentate in `.env.example`. `AUTH_SECRET` è l'unica obbligatoria:
 senza, l'app non parte (ed è voluto).
 
+Per le notifiche push servono anche le chiavi VAPID (`npx web-push generate-vapid-keys`).
+Se mancano, l'app funziona identica ma le notifiche restano spente.
+
+## Installarla sul telefono
+
+Su iPhone: apri il sito in **Safari**, tocca Condividi e poi **Aggiungi alla schermata Home**.
+Va fatto per forza da lì: le notifiche push su iOS funzionano solo dall'app installata.
+Da installata, corse e rifornimenti registrati senza segnale restano in coda sul telefono e
+partono da soli quando la rete torna.
+
 ## Produzione
 
 ```bash

@@ -113,12 +113,31 @@ Inter Tight + JetBrains Mono tabellare; elemento firma = quadrante del saldo con
 - **Statistiche dei reclami sulla pagina saldi** invece che su un profilo dedicato: il senso è che
   siano pubbliche, e i saldi è la pagina che guardate tutti.
 
-## Fase 3 — PWA e affidabilità sul campo
+## Fase 3 — PWA e affidabilità sul campo ✅
 
-- [ ] PWA installabile (manifest, icone, splash) + istruzioni "aggiungi alla home" per iOS.
-- [ ] Offline: coda IndexedDB per corse e rifornimenti, sync automatica, indicatore di stato.
-- [ ] Tastierino numerico grande con pre-compilazione dell'ultimo km noto.
-- [ ] Web Push: reclami con countdown 48h, promemoria corse aperte, nuovo debito, scadenze.
+- [x] PWA installabile (manifest, icone generate dall'elemento firma) + istruzioni "aggiungi alla home" per iOS.
+- [x] Offline: coda IndexedDB per corse e rifornimenti, sync automatica al ritorno della rete, indicatore di stato sempre visibile.
+- [x] Tastierino numerico grande con pre-compilazione dell'ultimo km noto.
+- [x] Web Push: reclami con conto alla rovescia, promemoria corse aperte da più di 24h, pareggi da confermare. Le scadenze arrivano in Fase 4 insieme alla loro gestione.
+
+**Accettazione:** ✅ 85 test unitari, 1 di integrazione, 7 e2e — incluso il giro completo offline
+(corsa aperta e chiusa senza rete, coda che parte da sola, km che compaiono sul mezzo).
+
+### Deciso in autonomia in Fase 3
+
+- **Service worker scritto a mano invece di Serwist**: Serwist si integra col build di webpack e qui
+  Next 16 builda con Turbopack. Il file `public/sw.js` è statico, non passa dal build, e fa le tre
+  cose che servono (shell offline, pagina offline, push). Meno dipendenze e più controllo.
+- **L'id della corsa lo genera il telefono.** Senza, una corsa aperta offline non si potrebbe
+  chiudere finché la coda non arriva al server. Il server accetta l'id proposto dal client.
+- **La coda è uno store esterno a React** (`useSyncExternalStore`), non uno stato di componente:
+  è quello che chiede la regola `react-hooks/set-state-in-effect` di React 19, e viene più pulito.
+- **Le operazioni rifiutate dal server escono dalla coda** invece di essere ritentate all'infinito:
+  un contachilometri che torna indietro non diventerà valido al terzo tentativo.
+- **Niente Background Sync API**: su iOS non esiste. La coda parte all'evento `online` e all'apertura.
+- **Test e2e con sessione riusata**: il rate limit sul login (5 al minuto) è una misura di sicurezza
+  vera, non si alza per far contenti i test — si fa login una volta in un progetto di setup.
+- **Chiavi VAPID facoltative**: se mancano, l'app parte lo stesso e le notifiche restano spente.
 
 ## Fase 4 — Scadenze, statistiche, esportazione
 

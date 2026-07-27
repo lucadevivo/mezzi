@@ -1,20 +1,7 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test } from '@playwright/test';
+import { MATTEO_STATE } from './helpers';
 
-async function login(page: Page, email: string, password: string) {
-  await page.goto('/login');
-  await page.getByLabel('Email').fill(email);
-  await page.getByLabel('Password').fill(password);
-  await page.getByRole('button', { name: 'Entra' }).click();
-  await expect(page.getByText('Il tuo saldo')).toBeVisible();
-}
-
-async function logout(page: Page) {
-  await page.context().clearCookies();
-}
-
-test('un pareggio muove i saldi solo dopo la conferma di chi riceve', async ({ page }) => {
-  await login(page, 'luca@mezzi.local', 'passwordlunga123');
-
+test('un pareggio muove i saldi solo dopo la conferma di chi riceve', async ({ page, browser }) => {
   await page.goto('/pareggi');
   await page.getByLabel('A chi hai dato i soldi').selectOption({ label: 'Matteo' });
   await page.getByLabel('Quanto (€)').fill('20');
@@ -26,12 +13,13 @@ test('un pareggio muove i saldi solo dopo la conferma di chi riceve', async ({ p
   await page.goto('/saldi');
   await expect(page.getByText('20,00 €')).toHaveCount(0);
 
-  await logout(page);
-  await login(page, 'matteo@mezzi.local', 'passwordlunga456');
-
-  await page.goto('/pareggi');
-  await page.getByRole('button', { name: 'Confermo, li ho ricevuti' }).click();
-  await expect(page.getByText('confermato')).toBeVisible();
+  // Matteo entra con la sua sessione: la conferma può darla solo chi ha ricevuto.
+  const matteoContext = await browser.newContext({ storageState: MATTEO_STATE });
+  const matteo = await matteoContext.newPage();
+  await matteo.goto('/pareggi');
+  await matteo.getByRole('button', { name: 'Confermo, li ho ricevuti' }).click();
+  await expect(matteo.getByText('confermato')).toBeVisible();
+  await matteoContext.close();
 
   // Ora sì: chi ha pagato risale di 20, chi ha incassato scende di 20.
   await page.goto('/saldi');
@@ -40,8 +28,6 @@ test('un pareggio muove i saldi solo dopo la conferma di chi riceve', async ({ p
 });
 
 test('una spesa in parti uguali si registra e compare in elenco', async ({ page }) => {
-  await login(page, 'luca@mezzi.local', 'passwordlunga123');
-
   await page.goto('/spese');
   await page.getByLabel('Tipo di spesa').selectOption('bollo');
   await page.getByLabel('Importo (€)').fill('120');

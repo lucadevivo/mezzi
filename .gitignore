@@ -51,3 +51,6 @@ next-env.d.ts
 /playwright-report
 /blob-report
 /playwright/.cache
+
+# Sessioni salvate dai test
+/tests/e2e/.auth

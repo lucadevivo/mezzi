@@ -39,10 +39,20 @@ src/
     billing/      # LOGICA PURA: nessun import di DB, framework, date "now". Solo funzioni e tipi.
     db/           # schema Drizzle, migrazioni, seed, query
     auth/         # Better Auth, inviti, sessioni
-    services/     # scritture: corse, rifornimenti, reclami, ledger, audit
+    services/     # scritture: corse, rifornimenti, reclami, ledger, audit, notifiche
+    offline/      # coda IndexedDB, corsa avviata senza rete, hook di stato del browser
   components/
-tests/e2e/        # Playwright: due flussi, sul server standalone di produzione
+public/sw.js      # service worker scritto a mano: shell offline, pagina offline, push
+tests/e2e/        # Playwright, sul server standalone di produzione
+tests/integration/# quello che passa dal DB (riconciliazione)
 ```
+
+## Uso senza rete
+
+Il garage non prende. Corse e rifornimenti registrati offline finiscono in una coda IndexedDB e
+partono da soli quando la rete torna; l'indicatore in cima alla pagina dice sempre quante
+operazioni aspettano. **L'id della corsa lo genera il telefono**, così una corsa aperta offline si
+può anche chiudere offline. Il server (`/api/sync`) riconosce gli id già applicati e non li rifà.
 
 ## Direzione visiva — "Libretto di bordo"
 

@@ -1,5 +1,7 @@
 import Link from 'next/link';
+import { OfflineSync } from '@/components/offline-sync';
 import { requireUser } from '@/lib/auth/session';
+import { notifyUnclaimedResolved, remindOpenTrips } from '@/lib/services/notifications';
 import { pendingConfirmationsFor } from '@/lib/services/settlements';
 import { listPendingUnclaimed, resolveExpiredUnclaimed } from '@/lib/services/unclaimed';
 
@@ -18,8 +20,13 @@ function NavLink({ href, label, badge }: { href: string; label: string; badge?: 
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const user = await requireUser();
-  // Nessuno scheduler: i termini scaduti si chiudono quando qualcuno apre l'app.
-  resolveExpiredUnclaimed();
+
+  // Nessuno scheduler: i termini scaduti si chiudono, e i promemoria partono,
+  // quando qualcuno apre l'app. Con quattro utenti succede più che abbastanza spesso.
+  for (const resolved of resolveExpiredUnclaimed()) {
+    await notifyUnclaimedResolved(resolved.id, resolved.chargedTo, resolved.status);
+  }
+  await remindOpenTrips();
 
   const pendingClaims = listPendingUnclaimed().length;
   const pendingSettlements = pendingConfirmationsFor(user.id).length;
@@ -39,9 +46,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           <NavLink href="/spese" label="Spese" />
           <NavLink href="/pareggi" label="Pareggi" badge={pendingSettlements} />
           <NavLink href="/storico" label="Storico" />
+          <NavLink href="/impostazioni" label="Impostazioni" />
           {user.role === 'admin' ? <NavLink href="/admin" label="Admin" /> : null}
         </nav>
       </header>
+      <OfflineSync />
       <main className="flex-1 px-4 pb-24">{children}</main>
     </div>
   );

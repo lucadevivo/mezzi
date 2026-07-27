@@ -18,6 +18,15 @@ const schema = z.object({
   OPEN_TRIP_ABSORB_HOURS: z.coerce.number().positive().default(24),
   /** Ore entro cui rispondere a una richiesta di reclamo. */
   CLAIM_DEADLINE_HOURS: z.coerce.number().positive().default(48),
+
+  /**
+   * Chiavi VAPID per le notifiche push. Se mancano, l'app funziona lo stesso:
+   * le notifiche restano spente invece di far fallire l'avvio.
+   * Si generano con: npx web-push generate-vapid-keys
+   */
+  VAPID_PUBLIC_KEY: z.string().optional(),
+  VAPID_PRIVATE_KEY: z.string().optional(),
+  VAPID_SUBJECT: z.string().default('mailto:admin@webluca.app'),
 });
 
 export type Env = z.infer<typeof schema>;

@@ -404,6 +404,44 @@ export const deadlines = sqliteTable('deadlines', {
   updatedAt: updatedAt(),
 });
 
+/* -------------------------------------------------------------------------- */
+/* Uso sul campo: coda offline e notifiche                                     */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Operazioni arrivate dalla coda offline. L'id lo genera il telefono: se la
+ * sincronizzazione parte due volte (rete che va e viene) la seconda non fa niente.
+ */
+export const syncOps = sqliteTable('sync_ops', {
+  id: text('id').primaryKey(),
+  userId: text('user_id')
+    .notNull()
+    .references(() => user.id),
+  kind: text('kind', { enum: ['start_trip', 'close_trip', 'refuel'] }).notNull(),
+  payload: text('payload', { mode: 'json' }).notNull(),
+  /** Quando è successo davvero, non quando è arrivato al server. */
+  occurredAt: timestamp('occurred_at').notNull(),
+  appliedAt: createdAt(),
+  result: text('result'),
+});
+
+export const pushSubscriptions = sqliteTable(
+  'push_subscriptions',
+  {
+    id: text('id').primaryKey(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    endpoint: text('endpoint').notNull().unique(),
+    p256dh: text('p256dh').notNull(),
+    auth: text('auth').notNull(),
+    createdAt: createdAt(),
+    /** Ultimo errore del push service: dopo un 404/410 la subscription è morta. */
+    failedAt: timestamp('failed_at'),
+  },
+  (table) => [index('push_subscriptions_user_idx').on(table.userId)],
+);
+
 export const auditLog = sqliteTable(
   'audit_log',
   {

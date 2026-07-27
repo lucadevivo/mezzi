@@ -1,15 +1,8 @@
-import { expect, test, type Page } from '@playwright/test';
-
-async function login(page: Page) {
-  await page.goto('/login');
-  await page.getByLabel('Email').fill('luca@mezzi.local');
-  await page.getByLabel('Password').fill('passwordlunga123');
-  await page.getByRole('button', { name: 'Entra' }).click();
-  await expect(page.getByText('Il tuo saldo')).toBeVisible();
-}
+import { expect, test } from '@playwright/test';
+import { enterOdometer } from './helpers';
 
 test('rifornimento e corsa completa: i numeri tornano', async ({ page }) => {
-  await login(page);
+  await page.goto('/');
 
   // Prima il pieno: senza carburante pagato non c'è un prezzo da addebitare.
   await page.getByRole('link', { name: /Ford Fiesta/ }).click();
@@ -34,13 +27,13 @@ test('rifornimento e corsa completa: i numeri tornano', async ({ page }) => {
 
   // Poi la corsa: 100 km a 16 km/l fanno 6,25 litri, cioè 11,25 euro.
   await page.goto('/mezzi/v-fiesta');
-  await page.getByLabel('Contachilometri adesso').fill('100000');
+  await enterOdometer(page, 'Contachilometri adesso', '100000');
   await page.getByRole('button', { name: 'Avanti' }).click();
   await page.getByRole('button', { name: 'Avvia la corsa' }).click();
 
   await expect(page.getByText('Corsa in corso')).toBeVisible();
 
-  await page.getByLabel('Contachilometri di arrivo').fill('100100');
+  await enterOdometer(page, 'Contachilometri di arrivo', '100100');
   await page.getByRole('button', { name: 'Chiudi la corsa' }).click();
 
   // 100 km in pochi secondi: il controllo di plausibilità chiede conferma, come deve.
@@ -54,11 +47,9 @@ test('rifornimento e corsa completa: i numeri tornano', async ({ page }) => {
 });
 
 test('km non registrati: il rilevatore può dire che non sono suoi', async ({ page }) => {
-  await login(page);
-
   // Lo Scarabeo ha soglia 3 km: 60 km in più non passano inosservati.
   await page.goto('/mezzi/v-scarabeo');
-  await page.getByLabel('Contachilometri adesso').fill('60');
+  await enterOdometer(page, 'Contachilometri adesso', '60');
   await page.getByRole('button', { name: 'Avanti' }).click();
 
   await expect(page.getByText(/non registrati su questo mezzo/)).toBeVisible();

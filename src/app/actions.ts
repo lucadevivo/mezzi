@@ -9,6 +9,12 @@ import { requireAdmin, requireUser } from '@/lib/auth/session';
 import { getEnv } from '@/lib/env';
 import { recordExpense, reverseExpense } from '@/lib/services/expenses';
 import { reverseRefuel, reverseTrip } from '@/lib/services/history';
+import {
+  notifySettlementToConfirm,
+  notifyUnclaimedResolved,
+  notifyUnclaimedTrip,
+} from '@/lib/services/notifications';
+import { removeSubscription, saveSubscription } from '@/lib/services/push';
 import { confirmSettlement, createSettlement } from '@/lib/services/settlements';
 import { recordRefuel } from '@/lib/services/refuels';
 import { checkOdometer, closeTrip, startTrip, takeOverOpenTrip } from '@/lib/services/trips';
@@ -105,7 +111,12 @@ export async function startTripAction(
   if (!parsed.success) return { error: 'Contachilometri non valido' };
 
   try {
-    startTrip({ ...parsed.data, userId: user.id });
+    const result = startTrip({ ...parsed.data, userId: user.id });
+    // Se sono saltati fuori km di nessuno, gli altri devono saperlo subito:
+    // il termine per rispondere corre da adesso.
+    if (result.unclaimedTripId && parsed.data.unclaimedAnswer !== 'mine') {
+      await notifyUnclaimedTrip(result.unclaimedTripId);
+    }
   } catch (error) {
     return fail(error);
   }
@@ -218,7 +229,10 @@ export async function respondUnclaimedAction(_prev: ActionState, formData: FormD
   const answer = formData.get('answer') === 'mine' ? 'mine' : 'not_mine';
 
   try {
-    respondToUnclaimed(id, user.id, answer);
+    const resolution = respondToUnclaimed(id, user.id, answer);
+    if (resolution.status !== 'pending') {
+      await notifyUnclaimedResolved(id, resolution.chargedTo, resolution.status);
+    }
   } catch (error) {
     return fail(error);
   }
@@ -298,14 +312,17 @@ export async function createSettlementAction(
   const parsed = settlementSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: 'Dati del pareggio non validi' };
 
+  const amountCents = Math.round(parsed.data.amount * 100);
+
   try {
     createSettlement({
       fromUserId: me.id,
       toUserId: parsed.data.toUserId,
-      amountCents: Math.round(parsed.data.amount * 100),
+      amountCents,
       method: parsed.data.method,
       note: parsed.data.note,
     });
+    await notifySettlementToConfirm(parsed.data.toUserId, me.id, amountCents);
   } catch (error) {
     return fail(error);
   }
@@ -353,6 +370,28 @@ export async function reverseAction(_prev: ActionState, formData: FormData): Pro
   revalidatePath('/storico');
   revalidatePath('/saldi');
   revalidatePath('/');
+  return {};
+}
+
+/* -------------------------------- notifiche --------------------------------- */
+
+const subscriptionSchema = z.object({
+  endpoint: z.string().url(),
+  keys: z.object({ p256dh: z.string().min(1), auth: z.string().min(1) }),
+});
+
+export async function subscribeToPushAction(subscription: unknown): Promise<ActionState> {
+  const me = await requireUser();
+  const parsed = subscriptionSchema.safeParse(subscription);
+  if (!parsed.success) return { error: 'Iscrizione alle notifiche non valida' };
+
+  saveSubscription(me.id, parsed.data);
+  return {};
+}
+
+export async function unsubscribeFromPushAction(endpoint: string): Promise<ActionState> {
+  await requireUser();
+  removeSubscription(endpoint);
   return {};
 }
 
