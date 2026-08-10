@@ -52,5 +52,5 @@ for _ in $(seq 30); do
   sleep 1
 done
 
-echo "L'app non risponde dopo il ripristino: controlla 'docker compose logs app'." >&2
+echo "L'app non risponde dopo il ripristino: controlla 'docker compose logs mezzi-app'." >&2
 exit 1

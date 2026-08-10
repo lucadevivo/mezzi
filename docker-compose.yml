@@ -1,5 +1,5 @@
 services:
-  app:
+  mezzi-app:
     build: .
     container_name: mezzi-app
     restart: unless-stopped

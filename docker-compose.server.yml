@@ -5,8 +5,11 @@
 # raggiunge i servizi per nome: perché `mezzi.webluca.app` funzioni, questo container
 # deve stare in quella rete. Il binding su 127.0.0.1 resta per poter fare diagnosi
 # dal server senza passare da internet.
+#
+# Il servizio si chiama `mezzi-app` e non `app`: in `turni_default` il nome del servizio
+# diventa un alias DNS, e un secondo `app` faceva round-robin con l'app dei turni.
 services:
-  app:
+  mezzi-app:
     networks:
       - default
       - turni_default
