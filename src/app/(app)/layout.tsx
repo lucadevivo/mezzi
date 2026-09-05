@@ -1,23 +1,11 @@
 import Link from 'next/link';
 import { OfflineSync } from '@/components/offline-sync';
+import { TabBar } from '@/components/tab-bar';
 import { requireUser } from '@/lib/auth/session';
 import { listDeadlines, notifyDueDeadlines } from '@/lib/services/deadlines';
 import { notifyUnclaimedResolved, remindOpenTrips } from '@/lib/services/notifications';
 import { pendingConfirmationsFor } from '@/lib/services/settlements';
 import { listPendingUnclaimed, resolveExpiredUnclaimed } from '@/lib/services/unclaimed';
-
-function NavLink({ href, label, badge }: { href: string; label: string; badge?: number }) {
-  return (
-    <Link href={href} className="relative px-1">
-      {label}
-      {badge ? (
-        <span className="tabular absolute -right-3 -top-2 rounded-full bg-debt px-1.5 text-xs text-ink">
-          {badge}
-        </span>
-      ) : null}
-    </Link>
-  );
-}
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const user = await requireUser();
@@ -37,25 +25,28 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="mx-auto flex w-full max-w-md flex-1 flex-col">
-      <header className="px-4 py-3">
-        <div className="flex items-center justify-between">
-          <Link href="/" className="text-lg font-semibold tracking-tight">
-            Mezzi
-          </Link>
-          <span className="text-sm text-ink-dim">{user.name}</span>
-        </div>
-        {/*
-          Tre voci e basta: su un telefono una barra da nove link non ci sta in
-          larghezza, e quelli in fondo diventano irraggiungibili. Il resto sta in "Altro".
-        */}
-        <nav className="mt-2 flex items-center gap-5 text-sm text-ink-dim">
-          <NavLink href="/saldi" label="Saldi" />
-          <NavLink href="/reclami" label="Reclami" badge={pendingClaims} />
-          <NavLink href="/altro" label="Altro" badge={elsewhere} />
-        </nav>
+      {/*
+        Titolone iOS invece della riga di link: la navigazione è scesa in fondo,
+        dove arriva il pollice. Qui resta solo dove sei e chi sei.
+      */}
+      <header className="flex items-center justify-between px-5 pb-1 pt-5">
+        <Link href="/" className="title-lg">
+          Mezzi
+        </Link>
+        <Link
+          href="/impostazioni"
+          aria-label={`Impostazioni di ${user.name}`}
+          className="glass flex size-10 items-center justify-center rounded-full text-base font-semibold"
+        >
+          {user.name.slice(0, 1).toUpperCase()}
+        </Link>
       </header>
       <OfflineSync />
-      <main className="flex-1 px-4 pb-24">{children}</main>
+      {/* Lo spazio in fondo tiene conto della barra di vetro e del bordo del telefono. */}
+      <main className="flex-1 px-4 pb-[calc(92px+env(safe-area-inset-bottom))] pt-2">
+        {children}
+      </main>
+      <TabBar claims={pendingClaims} elsewhere={elsewhere} />
     </div>
   );
 }

@@ -21,7 +21,7 @@ const RULES = [
 ] as const;
 
 const selectClass =
-  'min-h-12 w-full rounded-xl border border-line bg-surface-2 px-4 text-base text-ink';
+  'min-h-12 w-full rounded-2xl glass-2 px-4 text-base text-ink';
 
 export function ExpenseForm({
   vehicles,
@@ -85,7 +85,7 @@ export function ExpenseForm({
           {RULES.map((option) => (
             <label
               key={option.value}
-              className={`flex min-h-12 items-center gap-3 rounded-xl border px-4 ${
+              className={`flex min-h-12 items-center gap-3 rounded-2xl border px-4 ${
                 rule === option.value ? 'border-amber bg-amber/10' : 'border-line bg-surface-2'
               }`}
             >

@@ -2,6 +2,10 @@ import Link from 'next/link';
 import type { ComponentProps, ReactNode } from 'react';
 import { formatEuro } from '@/lib/format';
 
+const CARD = 'glass rounded-[var(--radius-card)] relative overflow-hidden';
+const CONTROL =
+  'w-full rounded-2xl glass-2 px-4 text-ink transition-[border-color,background-color] focus:border-amber/60 focus:outline-none';
+
 export function Card({
   children,
   accent,
@@ -14,8 +18,19 @@ export function Card({
 }) {
   return (
     <div
-      className={`relative overflow-hidden rounded-xl border border-line bg-surface ${className}`}
-      style={accent ? { borderLeft: `6px solid ${accent}` } : undefined}
+      className={`${CARD} ${className}`}
+      /*
+       * Il colore del mezzo tinge la lastra e il suo bordo invece di stare in una
+       * banda sul fianco: sul vetro la luce arriva da un lato, non a strisce.
+       */
+      style={
+        accent
+          ? {
+              borderColor: `${accent}66`,
+              backgroundImage: `linear-gradient(103deg, ${accent}2e, transparent 46%)`,
+            }
+          : undefined
+      }
     >
       {children}
     </div>
@@ -26,7 +41,7 @@ export function PrimaryButton({ className = '', ...props }: ComponentProps<'butt
   return (
     <button
       {...props}
-      className={`min-h-14 w-full rounded-xl bg-amber px-5 text-lg font-semibold text-amber-ink transition-opacity active:opacity-80 disabled:opacity-50 ${className}`}
+      className={`min-h-14 w-full rounded-2xl bg-amber px-5 text-lg font-semibold text-amber-ink shadow-[0_8px_24px_oklch(0.81_0.155_67/28%)] transition-transform duration-200 active:scale-[0.97] disabled:opacity-50 ${className}`}
     />
   );
 }
@@ -35,7 +50,7 @@ export function SecondaryButton({ className = '', ...props }: ComponentProps<'bu
   return (
     <button
       {...props}
-      className={`min-h-12 w-full rounded-xl border border-line bg-surface-2 px-4 text-base font-medium text-ink transition-opacity active:opacity-80 disabled:opacity-50 ${className}`}
+      className={`min-h-12 w-full rounded-2xl glass-2 px-4 text-base font-medium text-ink transition-transform duration-200 active:scale-[0.97] disabled:opacity-50 ${className}`}
     />
   );
 }
@@ -44,7 +59,7 @@ export function PrimaryLink({ className = '', ...props }: ComponentProps<typeof 
   return (
     <Link
       {...props}
-      className={`flex min-h-14 w-full items-center justify-center rounded-xl bg-amber px-5 text-lg font-semibold text-amber-ink active:opacity-80 ${className}`}
+      className={`flex min-h-14 w-full items-center justify-center rounded-2xl bg-amber px-5 text-lg font-semibold text-amber-ink shadow-[0_8px_24px_oklch(0.81_0.155_67/28%)] transition-transform duration-200 active:scale-[0.97] ${className}`}
     />
   );
 }
@@ -63,7 +78,7 @@ export function Field({
   return (
     <div>
       <label className="block">
-        <span className="mb-1 block text-sm text-ink-dim">{label}</span>
+        <span className="mb-1.5 block text-sm text-ink-dim">{label}</span>
         {children}
       </label>
       {hint ? <p className="mt-1 text-xs text-ink-dim">{hint}</p> : null}
@@ -77,24 +92,19 @@ export function NumberInput({ className = '', ...props }: ComponentProps<'input'
       {...props}
       inputMode="decimal"
       autoComplete="off"
-      className={`tabular min-h-14 w-full rounded-xl border border-line bg-surface-2 px-4 text-2xl text-ink ${className}`}
+      className={`tabular min-h-14 text-2xl ${CONTROL} ${className}`}
     />
   );
 }
 
 export function TextInput({ className = '', ...props }: ComponentProps<'input'>) {
-  return (
-    <input
-      {...props}
-      className={`min-h-12 w-full rounded-xl border border-line bg-surface-2 px-4 text-base text-ink ${className}`}
-    />
-  );
+  return <input {...props} className={`min-h-12 text-base ${CONTROL} ${className}`} />;
 }
 
 export function ErrorBanner({ children }: { children: ReactNode }) {
   if (!children) return null;
   return (
-    <p role="alert" className="rounded-xl border border-debt/40 bg-debt/10 px-4 py-3 text-debt">
+    <p role="alert" className="rounded-2xl border border-debt/40 bg-debt/12 px-4 py-3 text-debt">
       {children}
     </p>
   );
@@ -102,7 +112,7 @@ export function ErrorBanner({ children }: { children: ReactNode }) {
 
 export function EmptyState({ title, hint }: { title: string; hint: string }) {
   return (
-    <div className="rounded-xl border border-dashed border-line px-4 py-8 text-center">
+    <div className="rounded-[var(--radius-card)] border border-dashed border-line px-4 py-8 text-center">
       <p className="font-medium text-ink">{title}</p>
       <p className="mt-1 text-sm text-ink-dim">{hint}</p>
     </div>

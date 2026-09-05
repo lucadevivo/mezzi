@@ -41,6 +41,9 @@ export default defineConfig({
       'npm run user:password -- matteo@mezzi.local passwordlunga456',
       // Il server standalone gira nella propria cartella: gli servono statici e migrazioni lì.
       'cp -r .next/static .next/standalone/.next/',
+      // Come fa il Dockerfile: senza `public/` il service worker è un 404 e il test
+      // offline non ha la shell da servire quando la pagina prova a ricaricarsi.
+      'cp -r public .next/standalone/',
       'cp -r drizzle .next/standalone/',
       `PORT=${PORT} node .next/standalone/server.js`,
     ].join(' && '),

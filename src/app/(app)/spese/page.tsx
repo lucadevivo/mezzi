@@ -29,7 +29,7 @@ export default async function ExpensesPage() {
   return (
     <div className="space-y-6">
       <section className="space-y-3">
-        <h1 className="text-sm uppercase tracking-widest text-ink-dim">Spese fisse</h1>
+        <h1 className="text-[15px] font-semibold text-ink-dim">Spese fisse</h1>
         <ExpenseForm
           vehicles={vehicles.map((v) => ({ id: v.id, name: v.name }))}
           payers={people.map((p) => ({ id: p.id, name: p.name }))}
@@ -38,7 +38,7 @@ export default async function ExpensesPage() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-sm uppercase tracking-widest text-ink-dim">Registrate</h2>
+        <h2 className="text-[15px] font-semibold text-ink-dim">Registrate</h2>
         {expenses.length === 0 ? (
           <EmptyState
             title="Ancora nessuna spesa"

@@ -1,9 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter_Tight, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
-
-const interTight = Inter_Tight({ variable: '--font-inter-tight', subsets: ['latin'] });
-const jetbrainsMono = JetBrains_Mono({ variable: '--font-jetbrains-mono', subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: 'Mezzi',
@@ -11,17 +7,16 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#14171a',
+  themeColor: '#101320',
   // Il tastierino numerico non deve zoomare la pagina quando si tocca un campo.
   maximumScale: 1,
+  // Le luci d'ambiente e la barra in basso arrivano fino al bordo del telefono.
+  viewportFit: 'cover',
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html
-      lang="it"
-      className={`${interTight.variable} ${jetbrainsMono.variable} h-full antialiased`}
-    >
+    <html lang="it" className="h-full antialiased">
       <body className="flex min-h-full flex-col">{children}</body>
     </html>
   );

@@ -88,7 +88,7 @@ export default async function VehiclePage({ params }: { params: Promise<{ id: st
         </section>
       ) : (
         <section className="space-y-3">
-          <h2 className="text-sm uppercase tracking-widest text-ink-dim">
+          <h2 className="text-[15px] font-semibold text-ink-dim">
             {openTrip ? `Corsa in corso · ${formatSince(openTrip.startedAt)}` : 'Prendi il mezzo'}
           </h2>
           <TripPanel
@@ -110,7 +110,7 @@ export default async function VehiclePage({ params }: { params: Promise<{ id: st
 
       <Link
         href={`/mezzi/${vehicle.id}/rifornimento`}
-        className="flex min-h-12 w-full items-center justify-center rounded-xl border border-line bg-surface-2 text-base font-medium"
+        className="flex min-h-12 w-full items-center justify-center rounded-2xl glass-2 text-base font-medium"
       >
         Ho fatto rifornimento
       </Link>

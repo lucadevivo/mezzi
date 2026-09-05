@@ -18,7 +18,7 @@ export default async function BalancesPage() {
   return (
     <div className="space-y-6">
       <section className="space-y-3">
-        <h1 className="text-sm uppercase tracking-widest text-ink-dim">Saldi</h1>
+        <h1 className="text-[15px] font-semibold text-ink-dim">Saldi</h1>
         {billable.map((b) => {
           const stats = claimStatsFor(b.userId);
           return (
@@ -50,7 +50,7 @@ export default async function BalancesPage() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-sm uppercase tracking-widest text-ink-dim">Chi deve cosa a chi</h2>
+        <h2 className="text-[15px] font-semibold text-ink-dim">Chi deve cosa a chi</h2>
         {plan.length === 0 ? (
           <EmptyState title="Siete in pari" hint="Nessun passaggio di denaro necessario." />
         ) : (
@@ -72,7 +72,7 @@ export default async function BalancesPage() {
 
       {others.length > 0 ? (
         <section className="space-y-3">
-          <h2 className="text-sm uppercase tracking-widest text-ink-dim">Fuori dai conti</h2>
+          <h2 className="text-[15px] font-semibold text-ink-dim">Fuori dai conti</h2>
           {others.map((b) => (
             <Card key={b.userId} className="flex items-center justify-between px-4 py-3">
               <span>{b.name}</span>

@@ -16,7 +16,7 @@ export default async function AuditPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-sm uppercase tracking-widest text-ink-dim">Audit log</h1>
+      <h1 className="text-[15px] font-semibold text-ink-dim">Audit log</h1>
 
       {entries.length === 0 ? (
         <EmptyState title="Niente da tracciare" hint="Qui finisce ogni scrittura sensibile." />

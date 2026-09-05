@@ -35,7 +35,7 @@ export default async function StatsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-sm uppercase tracking-widest text-ink-dim">Statistiche</h1>
+        <h1 className="text-[15px] font-semibold text-ink-dim">Statistiche</h1>
         <p className="text-lg capitalize">{monthLabel(period)}</p>
       </div>
 
@@ -58,7 +58,7 @@ export default async function StatsPage() {
       )}
 
       <section className="space-y-3">
-        <h2 className="text-sm uppercase tracking-widest text-ink-dim">Chilometri per persona</h2>
+        <h2 className="text-[15px] font-semibold text-ink-dim">Chilometri per persona</h2>
         <Card className="px-4 py-4">
           <BarList
             emptyHint="Nessun chilometro registrato questo mese."
@@ -73,7 +73,7 @@ export default async function StatsPage() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-sm uppercase tracking-widest text-ink-dim">Costo per persona</h2>
+        <h2 className="text-[15px] font-semibold text-ink-dim">Costo per persona</h2>
         <Card className="px-4 py-4">
           <BarList
             emptyHint="Nessun costo registrato questo mese."
@@ -88,7 +88,7 @@ export default async function StatsPage() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-sm uppercase tracking-widest text-ink-dim">Costo medio al km</h2>
+        <h2 className="text-[15px] font-semibold text-ink-dim">Costo medio al km</h2>
         {byVehicle.map((vehicle) => (
           <Card key={vehicle.vehicleId} accent={vehicle.color} className="px-4 py-3">
             <div className="flex items-baseline justify-between gap-3">
@@ -108,7 +108,7 @@ export default async function StatsPage() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-sm uppercase tracking-widest text-ink-dim">Consumo reale nel tempo</h2>
+        <h2 className="text-[15px] font-semibold text-ink-dim">Consumo reale nel tempo</h2>
         {/* Solo i mezzi che hanno davvero un andamento: tre schede vuote identiche sono rumore. */}
         {trends.length === 0 ? (
           <EmptyState
@@ -133,13 +133,13 @@ export default async function StatsPage() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-sm uppercase tracking-widest text-ink-dim">Esporta</h2>
+        <h2 className="text-[15px] font-semibold text-ink-dim">Esporta</h2>
         <div className="grid grid-cols-2 gap-2">
           {EXPORTS.map((item) => (
             <a
               key={item.kind}
               href={`/api/export/${item.kind}`}
-              className="flex min-h-12 items-center justify-center rounded-xl border border-line bg-surface-2 text-base text-ink"
+              className="flex min-h-12 items-center justify-center rounded-2xl glass-2 text-base text-ink"
             >
               {item.label}
             </a>
@@ -147,7 +147,7 @@ export default async function StatsPage() {
         </div>
         <Link
           href="/riepilogo"
-          className="flex min-h-12 w-full items-center justify-center rounded-xl border border-line bg-surface-2 text-base text-ink"
+          className="flex min-h-12 w-full items-center justify-center rounded-2xl glass-2 text-base text-ink"
         >
           Riepilogo mensile stampabile
         </Link>

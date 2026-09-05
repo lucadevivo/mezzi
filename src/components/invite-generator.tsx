@@ -18,7 +18,7 @@ export function InviteGenerator() {
         {pending ? 'Genero…' : 'Genera un link di invito'}
       </PrimaryButton>
       {url ? (
-        <div className="rounded-xl border border-line bg-surface-2 p-3">
+        <div className="rounded-2xl glass-2 p-3">
           <p className="text-xs text-ink-dim">Valido 7 giorni, usabile una volta sola.</p>
           <p className="mt-1 break-all text-sm">{url}</p>
         </div>

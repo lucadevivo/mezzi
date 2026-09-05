@@ -27,9 +27,9 @@ export default async function HomePage() {
   const myOpen = cards.find((c) => c.openTrip?.userId === me.id);
 
   return (
-    <div className="space-y-6">
+    <div className={`space-y-6 ${myOpen ? 'pb-20' : ''}`}>
       <Card className="px-4 py-5 text-center">
-        <p className="text-sm uppercase tracking-widest text-ink-dim">Il tuo saldo</p>
+        <p className="text-sm text-ink-dim">Il tuo saldo</p>
         <div className="mt-2 flex justify-center">
           <SaldoGauge balanceCents={balanceCents} />
         </div>
@@ -44,7 +44,7 @@ export default async function HomePage() {
       </Card>
 
       <section className="space-y-3">
-        <h2 className="text-sm uppercase tracking-widest text-ink-dim">I mezzi</h2>
+        <h2 className="px-1 text-[15px] font-semibold text-ink-dim">I mezzi</h2>
         {cards.length === 0 ? (
           <EmptyState title="Nessun mezzo" hint="Chiedi all'admin di aggiungerne uno." />
         ) : null}
@@ -67,18 +67,20 @@ export default async function HomePage() {
         ))}
       </section>
 
-      <div className="fixed inset-x-0 bottom-0 mx-auto max-w-md border-t border-line bg-base/95 p-4 backdrop-blur">
-        {myOpen ? (
+      {/* Solo l'azione vera galleggia sopra la tab bar. Il suggerimento è testo,
+          e da fermo in mezzo allo schermo darebbe solo fastidio. */}
+      {myOpen ? (
+        <div className="fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+84px)] z-20 mx-auto max-w-[26rem]">
           <Link
             href={`/mezzi/${myOpen.vehicle.id}`}
-            className="flex min-h-14 w-full items-center justify-center rounded-xl bg-amber px-5 text-lg font-semibold text-amber-ink active:opacity-80"
+            className="flex min-h-14 w-full items-center justify-center rounded-2xl bg-amber px-5 text-lg font-semibold text-amber-ink shadow-[0_10px_30px_oklch(0.81_0.155_67/32%)] transition-transform duration-200 active:scale-[0.97]"
           >
             Chiudi la corsa — {myOpen.vehicle.name}
           </Link>
-        ) : (
-          <p className="text-center text-sm text-ink-dim">Tocca un mezzo per prenderlo.</p>
-        )}
-      </div>
+        </div>
+      ) : (
+        <p className="px-1 text-center text-sm text-ink-dim">Tocca un mezzo per prenderlo.</p>
+      )}
     </div>
   );
 }

@@ -17,18 +17,18 @@ export default async function AdminPage() {
   return (
     <div className="space-y-6">
       <section className="space-y-3">
-        <h1 className="text-sm uppercase tracking-widest text-ink-dim">Inviti</h1>
+        <h1 className="text-[15px] font-semibold text-ink-dim">Inviti</h1>
         <InviteGenerator />
         <Link
           href="/admin/audit"
-          className="flex min-h-12 w-full items-center justify-center rounded-xl border border-line bg-surface-2 text-base font-medium"
+          className="flex min-h-12 w-full items-center justify-center rounded-2xl glass-2 text-base font-medium"
         >
           Audit log
         </Link>
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-sm uppercase tracking-widest text-ink-dim">Utenti</h2>
+        <h2 className="text-[15px] font-semibold text-ink-dim">Utenti</h2>
         {users.map((u) => (
           <Card key={u.id} accent={u.color} className="flex items-center justify-between px-4 py-3">
             <span>{u.name}</span>
@@ -42,7 +42,7 @@ export default async function AdminPage() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-sm uppercase tracking-widest text-ink-dim">Mezzi</h2>
+        <h2 className="text-[15px] font-semibold text-ink-dim">Mezzi</h2>
         {vehicles.map((v) => (
           <Card key={v.id} accent={v.color} className="px-4 py-3">
             <div className="flex items-center justify-between">

@@ -32,9 +32,9 @@ function LoginForm() {
   }
 
   return (
-    <form action={onSubmit} className="space-y-4">
+    <form action={onSubmit} className="glass space-y-4 rounded-[var(--radius-card)] p-5">
       {justRegistered ? (
-        <p className="rounded-xl border border-credit/40 bg-credit/10 px-4 py-3 text-credit">
+        <p className="rounded-2xl border border-credit/40 bg-credit/10 px-4 py-3 text-credit">
           Account creato. Entra con le tue credenziali.
         </p>
       ) : null}
@@ -58,7 +58,7 @@ function LoginForm() {
 export default function LoginPage() {
   return (
     <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-4 py-10">
-      <h1 className="mb-1 text-2xl font-semibold">Mezzi</h1>
+      <h1 className="title-lg mb-1">Mezzi</h1>
       <p className="mb-6 text-ink-dim">Chi ha consumato quanto, chi deve mettere benzina.</p>
       <Suspense>
         <LoginForm />

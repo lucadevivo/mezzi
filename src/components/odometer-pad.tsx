@@ -46,7 +46,7 @@ export function OdometerPad({
           aria-label={label}
           onFocus={() => setPadOpen(true)}
           onClick={() => setPadOpen(true)}
-          className="tabular min-h-16 w-full rounded-xl border border-line bg-surface-2 px-4 text-3xl text-ink"
+          className="tabular min-h-16 w-full rounded-2xl glass-2 px-4 text-3xl text-ink"
         />
       </label>
       {hint ? <p className="mt-1 text-xs text-ink-dim">{hint}</p> : null}
@@ -60,7 +60,7 @@ export function OdometerPad({
                 type="button"
                 aria-label={key === '⌫' ? 'Cancella una cifra' : key === 'C' ? 'Azzera' : key}
                 onClick={() => press(key)}
-                className="tabular min-h-16 rounded-xl border border-line bg-surface-2 text-2xl text-ink active:bg-surface"
+                className="tabular min-h-16 rounded-2xl glass-2 text-2xl text-ink active:bg-surface"
               >
                 {key}
               </button>
@@ -70,7 +70,7 @@ export function OdometerPad({
           <button
             type="button"
             onClick={() => setPadOpen(false)}
-            className="min-h-12 w-full rounded-xl border border-line text-base text-ink-dim"
+            className="min-h-12 w-full rounded-2xl border border-line text-base text-ink-dim"
           >
             Fatto
           </button>

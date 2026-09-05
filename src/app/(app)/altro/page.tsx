@@ -34,23 +34,43 @@ export default async function MorePage() {
   ];
 
   return (
-    <div className="space-y-2">
-      <h1 className="mb-3 text-sm uppercase tracking-widest text-ink-dim">Altro</h1>
-      {entries.map((entry) => (
-        <Link
-          key={entry.href}
-          href={entry.href}
-          className="flex min-h-16 items-center justify-between gap-3 rounded-xl border border-line bg-surface px-4 py-3"
-        >
-          <span>
-            <span className="block font-medium">{entry.label}</span>
-            <span className="block text-sm text-ink-dim">{entry.hint}</span>
-          </span>
-          {entry.badge ? (
-            <span className="tabular rounded-full bg-debt px-2 py-0.5 text-sm">{entry.badge}</span>
-          ) : null}
-        </Link>
-      ))}
+    <div>
+      <h1 className="mb-3 text-[15px] font-semibold text-ink-dim">Altro</h1>
+      {/* Una lastra sola con i separatori, non sette card uguali in fila: è una lista. */}
+      <div className="glass divide-y divide-line overflow-hidden rounded-[var(--radius-card)]">
+        {entries.map((entry) => (
+          <Link
+            key={entry.href}
+            href={entry.href}
+            className="flex min-h-16 items-center justify-between gap-3 px-4 py-3 transition-colors active:bg-surface-2"
+          >
+            <span>
+              <span className="block font-medium">{entry.label}</span>
+              <span className="block text-sm text-ink-dim">{entry.hint}</span>
+            </span>
+            <span className="flex items-center gap-2">
+              {entry.badge ? (
+                <span className="tabular rounded-full bg-debt px-2 py-0.5 text-sm font-semibold">
+                  {entry.badge}
+                </span>
+              ) : null}
+              {/* Chevron: dice che si va da qualche parte, come in iOS. */}
+              <svg
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+                className="size-4 text-ink-dim"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="m9 5 7 7-7 7" />
+              </svg>
+            </span>
+          </Link>
+        ))}
+      </div>
     </div>
   );
 }

@@ -30,7 +30,7 @@ export default async function SummaryPage({
       </header>
 
       <section>
-        <h2 className="mb-2 text-sm uppercase tracking-widest text-ink-dim print:text-black">
+        <h2 className="mb-2 text-[15px] font-semibold text-ink-dim print:text-black">
           Per persona
         </h2>
         <table className="w-full text-sm">
@@ -59,7 +59,7 @@ export default async function SummaryPage({
       </section>
 
       <section>
-        <h2 className="mb-2 text-sm uppercase tracking-widest text-ink-dim print:text-black">
+        <h2 className="mb-2 text-[15px] font-semibold text-ink-dim print:text-black">
           Per mezzo
         </h2>
         <table className="w-full text-sm">

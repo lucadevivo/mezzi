@@ -96,7 +96,7 @@ export function RefuelForm({
               type="button"
               onClick={() => setLevel(option.value)}
               aria-pressed={level === option.value}
-              className={`min-h-12 rounded-xl border text-base font-medium ${
+              className={`min-h-12 rounded-2xl border text-base font-medium ${
                 level === option.value
                   ? 'border-amber bg-amber text-amber-ink'
                   : 'border-line bg-surface-2 text-ink'
@@ -115,7 +115,7 @@ export function RefuelForm({
         <select
           name="payerId"
           defaultValue={meId}
-          className="min-h-12 w-full rounded-xl border border-line bg-surface-2 px-4 text-base text-ink"
+          className="min-h-12 w-full rounded-2xl glass-2 px-4 text-base text-ink"
         >
           {payers.map((p) => (
             <option key={p.id} value={p.id}>

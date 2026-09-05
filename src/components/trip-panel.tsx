@@ -151,7 +151,7 @@ function StartTrip({
       {check?.kind === 'open_trip' ? <p className="text-ink-dim">{check.message}</p> : null}
 
       {check?.kind === 'unclaimed' ? (
-        <div className="space-y-3 rounded-xl border border-amber/40 bg-amber/10 p-4">
+        <div className="space-y-3 rounded-2xl border border-amber/40 bg-amber/10 p-4">
           <p className="font-semibold text-ink">
             {formatKm(check.distanceKm ?? 0)} non registrati su questo mezzo
           </p>
@@ -221,9 +221,12 @@ function CloseTrip({
       passengerIds: selected,
       note,
     }).then(() => {
+      // `clearPendingTrip` avvisa da solo e il pannello torna all'avvio corsa.
       clearPendingTrip();
 
-      router.refresh();
+      // Senza rete il refresh non ha niente da rileggere: la fetch RSC fallisce e
+      // Next ripiega su una navigazione vera, che ricarica tutta l'app per niente.
+      if (navigator.onLine) router.refresh();
     });
   };
 
@@ -249,7 +252,7 @@ function CloseTrip({
       </button>
 
       {showPassengers ? (
-        <fieldset className="space-y-2 rounded-xl border border-line p-3">
+        <fieldset className="space-y-2 rounded-2xl border border-line p-3">
           <legend className="px-1 text-sm text-ink-dim">
             Il costo si divide tra chi era a bordo
           </legend>
@@ -291,7 +294,7 @@ function CloseTrip({
   if (trip.pending) {
     return (
       <div className="space-y-4">
-        <p className="rounded-xl border border-amber/40 bg-amber/10 px-4 py-3 text-sm text-amber">
+        <p className="rounded-2xl border border-amber/40 bg-amber/10 px-4 py-3 text-sm text-amber">
           Corsa avviata senza rete: parte da sola appena torna il segnale.
         </p>
         {fields}

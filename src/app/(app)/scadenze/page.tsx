@@ -21,7 +21,7 @@ export default async function DeadlinesPage() {
   return (
     <div className="space-y-6">
       <section className="space-y-3">
-        <h1 className="text-sm uppercase tracking-widest text-ink-dim">Scadenze</h1>
+        <h1 className="text-[15px] font-semibold text-ink-dim">Scadenze</h1>
         {deadlines.length === 0 ? (
           <EmptyState
             title="Nessuna scadenza"
@@ -47,7 +47,7 @@ export default async function DeadlinesPage() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-sm uppercase tracking-widest text-ink-dim">Aggiungi</h2>
+        <h2 className="text-[15px] font-semibold text-ink-dim">Aggiungi</h2>
         <DeadlineForm vehicles={vehicles.map((v) => ({ id: v.id, name: v.name }))} />
       </section>
     </div>

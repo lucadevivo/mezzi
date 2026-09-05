@@ -44,7 +44,7 @@ export function PushToggle({ publicKey }: { publicKey: string | null }) {
 
   if (!supported || !standalone) {
     return (
-      <div className="rounded-xl border border-line bg-surface-2 px-4 py-3 text-sm text-ink-dim">
+      <div className="rounded-2xl glass-2 px-4 py-3 text-sm text-ink-dim">
         <p className="text-ink">Per ricevere le notifiche, installa l’app.</p>
         <p className="mt-1">
           Su iPhone: apri questa pagina in Safari, tocca <strong>Condividi</strong> e poi{' '}

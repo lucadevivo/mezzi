@@ -37,7 +37,7 @@ export default async function ClaimsPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-sm uppercase tracking-widest text-ink-dim">Corse non registrate</h1>
+      <h1 className="text-[15px] font-semibold text-ink-dim">Corse non registrate</h1>
 
       {rows.length === 0 ? (
         <EmptyState
@@ -87,7 +87,7 @@ export default async function ClaimsPage() {
 
             {responses.length > 0 ? (
               <div className="border-t border-line pt-2">
-                <p className="text-xs uppercase tracking-widest text-ink-dim">Risposte</p>
+                <p className="text-[13px] font-semibold text-ink-dim">Risposte</p>
                 <ul className="mt-1 space-y-1 text-sm">
                   {responses.map((r) => (
                     <li key={r.id} className="flex justify-between">

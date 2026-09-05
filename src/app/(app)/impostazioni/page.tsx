@@ -11,12 +11,12 @@ export default async function SettingsPage() {
   return (
     <div className="space-y-6">
       <section className="space-y-3">
-        <h1 className="text-sm uppercase tracking-widest text-ink-dim">Notifiche</h1>
+        <h1 className="text-[15px] font-semibold text-ink-dim">Notifiche</h1>
         <PushToggle publicKey={publicVapidKey()} />
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-sm uppercase tracking-widest text-ink-dim">Uso senza rete</h2>
+        <h2 className="text-[15px] font-semibold text-ink-dim">Uso senza rete</h2>
         <Card className="px-4 py-3 text-sm text-ink-dim">
           <p className="text-ink">In garage il segnale spesso non c’è.</p>
           <p className="mt-1">
@@ -27,7 +27,7 @@ export default async function SettingsPage() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-sm uppercase tracking-widest text-ink-dim">Account</h2>
+        <h2 className="text-[15px] font-semibold text-ink-dim">Account</h2>
         <Card className="px-4 py-3">
           <p>{me.name}</p>
           <p className="text-sm text-ink-dim">{me.email}</p>

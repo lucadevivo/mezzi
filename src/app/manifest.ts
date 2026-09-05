@@ -7,8 +7,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: 'Chi ha consumato quanto, chi deve mettere benzina.',
     start_url: '/',
     display: 'standalone',
-    background_color: '#14171a',
-    theme_color: '#14171a',
+    background_color: '#101320',
+    theme_color: '#101320',
     orientation: 'portrait',
     lang: 'it',
     icons: [

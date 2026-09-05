@@ -26,12 +26,12 @@ export default async function SettlementsPage() {
   return (
     <div className="space-y-6">
       <section className="space-y-3">
-        <h1 className="text-sm uppercase tracking-widest text-ink-dim">Ho pagato qualcuno</h1>
+        <h1 className="text-[15px] font-semibold text-ink-dim">Ho pagato qualcuno</h1>
         <SettlementForm people={people.map((p) => ({ id: p.id, name: p.name }))} />
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-sm uppercase tracking-widest text-ink-dim">Pareggi</h2>
+        <h2 className="text-[15px] font-semibold text-ink-dim">Pareggi</h2>
         {settlements.length === 0 ? (
           <EmptyState
             title="Nessun pareggio"

@@ -1,37 +1,87 @@
 @import 'tailwindcss';
 
 /*
- * "Libretto di bordo": antracite da cruscotto notturno, ambra strumenti per l'azione
- * primaria, numeri in mono tabellare come i tamburi meccanici del contachilometri.
+ * "Vetro": fondo notturno quasi nero con due luci d'ambiente fisse, e sopra
+ * lastre traslucide che quelle luci le raccolgono — i pannelli di iOS. Il blur
+ * ha senso solo se dietro c'è qualcosa da sfocare: le luci sono quel qualcosa.
+ * I numeri restano in mono tabellare: il contachilometri non deve ballare.
  */
 @theme {
-  --color-base: #14171a;
-  --color-surface: #1e2328;
-  --color-surface-2: #272d33;
-  --color-line: #343b42;
-  --color-ink: #e8eaed;
-  --color-ink-dim: #9aa3ab;
-  --color-amber: #e8a33d;
-  --color-amber-ink: #14171a;
-  --color-debt: #d9544d;
-  --color-credit: #4fb477;
+  --color-base: #101320;
+  --color-surface: oklch(1 0 0 / 7%);
+  --color-surface-2: oklch(1 0 0 / 11%);
+  --color-line: oklch(1 0 0 / 14%);
+  --color-ink: oklch(0.98 0.004 265);
+  --color-ink-dim: oklch(0.76 0.015 265);
+  --color-amber: oklch(0.81 0.155 67);
+  --color-amber-ink: oklch(0.24 0.04 67);
+  --color-debt: oklch(0.7 0.2 24);
+  --color-credit: oklch(0.79 0.18 152);
 
-  --font-sans: var(--font-inter-tight), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
+  /* Su iPhone questo è SF Pro vero, senza scaricare niente: nessun font
+     di rete può somigliare a iOS quanto il font di iOS. */
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', system-ui, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, monospace;
+
+  --radius-card: 22px;
+
+  /* Scala z: nessun 9999 sparso per i file. */
+  --z-sticky: 20;
+  --z-bar: 30;
 }
 
 html {
   color-scheme: dark;
+  background: var(--color-base);
   /* Il pollice non deve mai far scivolare la pagina di lato. */
   overflow-x: hidden;
 }
 
 body {
-  background: var(--color-base);
   color: var(--color-ink);
   font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
   /* Niente rimbalzo elastico sotto la barra delle azioni su iPhone. */
   overscroll-behavior-y: none;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(58% 42% at 8% -8%, oklch(0.6 0.15 258 / 42%), transparent 70%),
+    radial-gradient(66% 46% at 96% 104%, oklch(0.68 0.15 62 / 34%), transparent 72%);
+}
+
+@layer components {
+  /* La lastra. Bordo chiaro in alto = riflesso speculare, è quello che fa
+     leggere il pannello come vetro invece che come rettangolo trasparente. */
+  .glass {
+    background: var(--color-surface);
+    backdrop-filter: blur(28px) saturate(180%);
+    -webkit-backdrop-filter: blur(28px) saturate(180%);
+    border: 1px solid var(--color-line);
+    box-shadow:
+      inset 0 1px 0 oklch(1 0 0 / 16%),
+      0 10px 34px oklch(0 0 0 / 38%);
+  }
+
+  /* Il livello interno: traslucido sopra la lastra, che il blur ce l'ha già.
+     Un secondo backdrop-filter qui costerebbe GPU senza cambiare niente. */
+  .glass-2 {
+    background: var(--color-surface-2);
+    border: 1px solid var(--color-line);
+  }
+
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .glass {
+      background: oklch(0.26 0.02 265);
+    }
+  }
 }
 
 /* I numeri del contachilometri non devono ballare mentre si aggiornano. */
@@ -39,6 +89,14 @@ body {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.01em;
+}
+
+/* Titolone iOS: 34px semibold, tracking stretto. */
+.title-lg {
+  font-size: 34px;
+  line-height: 1.08;
+  font-weight: 700;
+  letter-spacing: -0.028em;
 }
 
 /* Si usa con una mano, in piedi, al buio: niente ritardi da doppio tap. */

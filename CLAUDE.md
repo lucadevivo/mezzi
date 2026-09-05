@@ -54,20 +54,33 @@ partono da soli quando la rete torna; l'indicatore in cima alla pagina dice semp
 operazioni aspettano. **L'id della corsa lo genera il telefono**, così una corsa aperta offline si
 può anche chiudere offline. Il server (`/api/sync`) riconosce gli id già applicati e non li rifà.
 
-## Direzione visiva — "Libretto di bordo"
+## Direzione visiva — "Vetro"
 
-Antracite da cruscotto notturno, ambra strumenti per l'azione primaria, numeri in mono tabellare.
-Token in `src/app/globals.css`: `base #14171A`, `surface #1E2328`, `ink #E8EAED`, `amber #E8A33D`,
-`debt #D9544D`, `credit #4FB477`. Inter Tight + JetBrains Mono. Elemento firma: il quadrante del
-saldo (`SaldoGauge`). Ogni mezzo porta il suo colore sul bordo sinistro della card: sbagliare mezzo
-è l'errore più probabile dell'app, e a colpo d'occhio deve essere evidente su cosa si sta agendo.
+Notte quasi nera (`base #101320`) con due luci d'ambiente fisse dietro tutto (`body::before`), e
+sopra lastre traslucide che quelle luci le raccolgono: è la grammatica di iOS. **Il blur senza
+niente dietro è solo un pannello grigio**: se togli le luci, togli anche il vetro.
+
+- Token in `src/app/globals.css`: `surface` e `surface-2` sono bianchi trasparenti, non tinte
+  piene; `ink oklch(0.98 …)`, `amber oklch(0.81 0.155 67)`, `debt`/`credit` sui rossi/verdi iOS.
+- Due classi in `@layer components`: `.glass` (lastra: blur + saturate + bordo chiaro in alto come
+  riflesso speculare) e `.glass-2` (livello interno, niente secondo blur — sarebbe GPU sprecata).
+  Stanno in `@layer components` apposta: le utility Tailwind devono poterle sovrascrivere.
+- Font: **stack di sistema**, che su iPhone è SF Pro vero. Nessun font di rete somiglia a iOS
+  quanto il font di iOS, e non si scarica niente. Numeri in `.tabular` (SF Mono).
+- Raggi larghi (`--radius-card: 22px`, controlli `rounded-2xl`), titolone `.title-lg` da 34px.
+- Elemento firma: il quadrante del saldo (`SaldoGauge`).
+- Ogni mezzo tinge la sua card (bordo + sfumatura diagonale dal lato), **non** una banda sul
+  fianco: sbagliare mezzo è l'errore più probabile dell'app e a colpo d'occhio deve essere
+  evidente, ma sul vetro la luce arriva da un lato, non a strisce.
 
 **I colori identitari di utenti e mezzi (nel seed) sono validati, non scelti a occhio**: banda di
 luminosità per fondo scuro, soglia di croma, separazione sotto daltonismo, contrasto. La coppia
 Fiat 500 / Scarabeo di prima era indistinguibile in deuteranopia. Se ne cambi uno, rivalida.
 
-L'intestazione tiene tre voci (Saldi, Reclami, Altro): su un telefono una barra più lunga sfonda
-la larghezza e le voci in fondo diventano irraggiungibili.
+La navigazione sta **in fondo** (`src/components/tab-bar.tsx`, tab bar di vetro flottante con
+safe-area): sopra il pollice non ci arriva. Quattro voci — Mezzi, Saldi, Reclami, Altro — e non di
+più: una barra più lunga sfonda la larghezza del telefono. Tutto il resto sta dentro "Altro".
+L'azione della pagina (es. "Chiudi la corsa") sta sopra la tab bar, mai sotto.
 
 ## Regole non negoziabili
 

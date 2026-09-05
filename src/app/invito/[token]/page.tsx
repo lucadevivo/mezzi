@@ -16,7 +16,7 @@ export default async function InvitePage({ params }: { params: Promise<{ token: 
           <InviteForm token={token} />
         </>
       ) : (
-        <p className="rounded-xl border border-debt/40 bg-debt/10 px-4 py-3 text-debt">
+        <p className="rounded-2xl border border-debt/40 bg-debt/10 px-4 py-3 text-debt">
           Questo invito non è valido, è scaduto o è già stato usato. Chiedine uno nuovo all’admin.
         </p>
       )}

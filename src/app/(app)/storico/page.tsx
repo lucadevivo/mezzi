@@ -59,7 +59,7 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
 
   return (
     <div className="space-y-4">
-      <h1 className="text-sm uppercase tracking-widest text-ink-dim">Storico</h1>
+      <h1 className="text-[15px] font-semibold text-ink-dim">Storico</h1>
 
       <div className="flex flex-wrap gap-2">
         {chip('Tutti i mezzi', { mezzo: undefined }, !filters.mezzo)}
