@@ -27,10 +27,10 @@ export default async function HomePage() {
   const myOpen = cards.find((c) => c.openTrip?.userId === me.id);
 
   return (
-    <div className={`space-y-4 ${myOpen ? 'pb-20' : ''}`}>
+    <div className={`space-y-3 ${myOpen ? 'pb-20' : ''}`}>
       {/* Il quadrante è sparito: di un saldo interessa la cifra, e la cifra da
           sola lascia entrare i mezzi nella prima schermata senza scorrere. */}
-      <Card className="px-4 py-4">
+      <Card className="px-4 py-3">
         <p className="text-sm text-ink-dim">Il tuo saldo</p>
         <p
           className={`tabular mt-0.5 text-[40px] font-semibold leading-none ${

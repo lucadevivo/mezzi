@@ -89,9 +89,12 @@ safe-area): sopra il pollice non ci arriva. Quattro voci — Mezzi, Saldi, Recla
 più: una barra più lunga sfonda la larghezza del telefono. Tutto il resto sta dentro "Altro".
 L'azione della pagina (es. "Chiudi la corsa") sta sopra la tab bar, mai sotto.
 
-**La home entra in uno schermo da 393×852 senza scorrere**, ed è un vincolo, non un caso: saldo,
-tre mezzi e suggerimento. Per farcela è sparito il quadrante del saldo (`SaldoGauge`): di un saldo
-interessa la cifra. Se aggiungi qualcosa alla home, misura di nuovo.
+**Home e rifornimento entrano senza scorrere in 393×620**, ed è un vincolo, non un caso: 620 è
+quello che resta di un iPhone quando Safari tiene le sue barre, e il pulsante «Registra il
+rifornimento» deve stare sopra la piega. Per starci sono spariti il quadrante del saldo
+(`SaldoGauge`) e, dal rifornimento, i campi che nessuno compilava. Nel `TankGauge` quadrante e
+lettura stanno **affiancati**: in colonna si mangiavano mezzo schermo. Se aggiungi qualcosa a
+queste due schermate, **rimisura** — a 620 non c'è un pixel di margine.
 
 ## Regole non negoziabili
 

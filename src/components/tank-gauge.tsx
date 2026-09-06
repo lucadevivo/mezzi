@@ -50,13 +50,15 @@ export function TankGauge({
 
   return (
     <fieldset>
-      <legend className="mb-1 text-sm text-ink-dim">
+      <legend className="text-sm text-ink-dim">
         Serbatoio dopo il rifornimento <span className="opacity-70">— facoltativo</span>
       </legend>
 
+      {/* Quadrante e lettura affiancati: in colonna mangiavano mezzo schermo. */}
+      <div className="flex items-center gap-3">
       <svg
-        viewBox="30 10 140 102"
-        className={`mx-auto w-full max-w-[220px] ${known ? '' : 'opacity-40'}`}
+        viewBox="22 6 156 108"
+        className={`w-[150px] shrink-0 ${known ? '' : 'opacity-40'}`}
         role="img"
         aria-hidden="true"
       >
@@ -102,6 +104,19 @@ export function TankGauge({
         <circle cx="100" cy="100" r="6" fill="var(--color-ink)" />
       </svg>
 
+        <div className="min-w-0">
+          <p className="text-lg font-medium text-ink">{formatTank(value)}</p>
+          <button
+            type="button"
+            onClick={() => onChange(known ? null : 1)}
+            className="text-sm text-ink-dim underline"
+          >
+            {known ? 'Non l’ho guardata' : 'Segna il livello'}
+          </button>
+          <p className="mt-1 text-xs text-ink-dim">Da due letture si ricava il consumo vero.</p>
+        </div>
+      </div>
+
       <input
         type="range"
         min={0}
@@ -110,26 +125,10 @@ export function TankGauge({
         value={shown}
         aria-label="Livello del serbatoio dopo il rifornimento"
         onChange={(e) => onChange(Number(e.target.value))}
-        className="h-11 w-full cursor-pointer appearance-none rounded-full bg-transparent [&::-moz-range-thumb]:size-7 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-ink [&::-moz-range-track]:h-1.5 [&::-moz-range-track]:rounded-full [&::-moz-range-track]:bg-surface-2 [&::-webkit-slider-runnable-track]:h-1.5 [&::-webkit-slider-runnable-track]:rounded-full [&::-webkit-slider-runnable-track]:bg-surface-2 [&::-webkit-slider-thumb]:-mt-[11px] [&::-webkit-slider-thumb]:size-7 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-ink"
+        className="-mt-1 h-9 w-full cursor-pointer appearance-none rounded-full bg-transparent [&::-moz-range-thumb]:size-7 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-ink [&::-moz-range-track]:h-1.5 [&::-moz-range-track]:rounded-full [&::-moz-range-track]:bg-surface-2 [&::-webkit-slider-runnable-track]:h-1.5 [&::-webkit-slider-runnable-track]:rounded-full [&::-webkit-slider-runnable-track]:bg-surface-2 [&::-webkit-slider-thumb]:-mt-[11px] [&::-webkit-slider-thumb]:size-7 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-ink"
       />
 
       <input type="hidden" name={name} value={value === null ? '' : String(value)} />
-
-      <div className="flex items-baseline justify-between gap-3">
-        <p className="text-base font-medium text-ink">{formatTank(value)}</p>
-        <button
-          type="button"
-          onClick={() => onChange(known ? null : 1)}
-          className="min-h-11 text-sm text-ink-dim underline"
-        >
-          {known ? 'Non l’ho guardata' : 'Segna il livello'}
-        </button>
-      </div>
-
-      <p className="text-xs text-ink-dim">
-        Non serve il pieno: da due letture della lancetta si ricava il consumo vero, e più
-        spesso la segni più i conti diventano precisi.
-      </p>
     </fieldset>
   );
 }

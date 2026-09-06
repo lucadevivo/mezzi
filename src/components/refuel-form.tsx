@@ -43,7 +43,7 @@ export function RefuelForm({
   const litersPreview = Number.isFinite(liters) && liters > 0 ? `${formatLiters(liters)}` : '—';
 
   return (
-    <form action={formAction} className="space-y-4">
+    <form action={formAction} className="space-y-3">
       <input type="hidden" name="vehicleId" value={vehicleId} />
 
       {/*
@@ -74,17 +74,16 @@ export function RefuelForm({
           />
         </Field>
       </div>
-      <p className="-mt-2 text-xs text-ink-dim">
-        I litri li calcolo io: {litersPreview}
-      </p>
+      <p className="-mt-1.5 text-xs text-ink-dim">I litri li calcolo io: {litersPreview}</p>
 
       <TankGauge name="tankFractionAfter" value={tank} onChange={setTank} />
 
-      <Field label="Chi ha pagato">
+      <label className="flex items-center gap-3">
+        <span className="shrink-0 text-sm text-ink-dim">Chi ha pagato</span>
         <select
           name="payerId"
           defaultValue={meId}
-          className="min-h-12 w-full rounded-2xl glass-2 px-4 text-base text-ink"
+          className="min-h-12 w-full rounded-2xl glass-2 px-3 text-base text-ink"
         >
           {payers.map((p) => (
             <option key={p.id} value={p.id}>
@@ -93,7 +92,7 @@ export function RefuelForm({
             </option>
           ))}
         </select>
-      </Field>
+      </label>
 
       <ErrorBanner>{state.error}</ErrorBanner>
       {state.needsConfirm ? <input type="hidden" name="conferma" value="si" /> : null}

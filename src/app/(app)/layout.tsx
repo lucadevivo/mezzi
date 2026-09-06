@@ -43,7 +43,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       </header>
       <OfflineSync />
       {/* Lo spazio in fondo tiene conto della barra di vetro e del bordo del telefono. */}
-      <main className="flex-1 px-4 pb-[calc(92px+env(safe-area-inset-bottom))] pt-2">
+      <main className="flex-1 px-4 pb-[calc(84px+env(safe-area-inset-bottom))] pt-2">
         {children}
       </main>
       <TabBar claims={pendingClaims} elsewhere={elsewhere} />
