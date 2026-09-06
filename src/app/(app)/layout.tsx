@@ -2,21 +2,16 @@ import Link from 'next/link';
 import { OfflineSync } from '@/components/offline-sync';
 import { TabBar } from '@/components/tab-bar';
 import { requireUser } from '@/lib/auth/session';
-import { notifyDueDeadlines } from '@/lib/services/deadlines';
-import { notifyUnclaimedResolved, remindOpenTrips } from '@/lib/services/notifications';
+import { scheduleMaintenance } from '@/lib/services/maintenance';
 import { pendingConfirmationsFor } from '@/lib/services/settlements';
-import { listPendingUnclaimed, resolveExpiredUnclaimed } from '@/lib/services/unclaimed';
+import { listPendingUnclaimed } from '@/lib/services/unclaimed';
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const user = await requireUser();
 
-  // Nessuno scheduler: i termini scaduti si chiudono, e i promemoria partono,
-  // quando qualcuno apre l'app. Con quattro utenti succede più che abbastanza spesso.
-  for (const resolved of resolveExpiredUnclaimed()) {
-    await notifyUnclaimedResolved(resolved.id, resolved.chargedTo, resolved.status);
-  }
-  await remindOpenTrips();
-  await notifyDueDeadlines();
+  // Parte in sottofondo e non blocca la pagina: le push verso Apple e Google sono
+  // richieste di rete, e aspettarle rendeva lento ogni cambio di sezione.
+  scheduleMaintenance();
 
   const pendingClaims = listPendingUnclaimed().length;
   const pendingSettlements = pendingConfirmationsFor(user.id).length;

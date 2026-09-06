@@ -30,7 +30,7 @@ export default async function BalancesPage() {
                     b.balanceCents < 0
                       ? 'text-debt'
                       : b.balanceCents > 0
-                        ? 'text-ink'
+                        ? 'text-credit'
                         : 'text-ink-dim'
                   }`}
                 >

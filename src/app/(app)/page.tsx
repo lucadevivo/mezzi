@@ -34,7 +34,7 @@ export default async function HomePage() {
         <p className="text-sm text-ink-dim">Il tuo saldo</p>
         <p
           className={`tabular mt-0.5 text-[40px] font-semibold leading-none ${
-            balanceCents < 0 ? 'text-debt' : 'text-ink'
+            balanceCents < 0 ? 'text-debt' : balanceCents > 0 ? 'text-credit' : 'text-ink-dim'
           }`}
         >
           {formatEuro(balanceCents)}

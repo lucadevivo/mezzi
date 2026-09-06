@@ -18,10 +18,11 @@
   --color-ink-dim: oklch(0.708 0 0);
   --color-accent: oklch(0.922 0 0);
   --color-accent-ink: oklch(0.205 0 0);
-  /* L'unico colore vivo di tutta l'app, il rosso di sistema dei turni: si accende
-     solo quando si deve davvero qualcosa. Il credito è bianco: la palette resta
-     neutra, e il rosso conserva il suo peso proprio perché è solo. */
+  /* Gli unici due colori vivi, e stanno solo sul saldo: rosso se devi dei soldi,
+     verde se ne hai messi più degli altri, grigio se sei in pari. Il rosso è il
+     destructive dei turni, il verde gli sta a fianco per croma e luminosità. */
   --color-debt: oklch(0.704 0.191 22.216);
+  --color-credit: oklch(0.76 0.16 152);
 
   /* Gli stessi dell'app delle pizze. */
   --font-sans: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
