@@ -9,7 +9,7 @@ import {
   type ActionState,
   type OdometerCheckResult,
 } from '@/app/actions';
-import { OdometerPad } from '@/components/odometer-pad';
+import { OdometerPad, padValue } from '@/components/odometer-pad';
 import { ErrorBanner, Field, PrimaryButton, SecondaryButton, TextInput } from '@/components/ui';
 import { usePendingTrip } from '@/lib/offline/hooks';
 import { enqueue } from '@/lib/offline/queue';
@@ -72,7 +72,7 @@ function StartTrip({
     startTripAction,
     {},
   );
-  const [odometer, setOdometer] = useState(String(Math.round(currentOdometerKm)));
+  const [odometer, setOdometer] = useState(padValue(currentOdometerKm));
   const [check, setCheck] = useState<OdometerCheckResult | null>(null);
   const [checking, startChecking] = useTransition();
   const [offlineError, setOfflineError] = useState<string | null>(null);
@@ -201,7 +201,7 @@ function CloseTrip({
     closeTripAction,
     {},
   );
-  const [odometerEnd, setOdometerEnd] = useState(String(Math.round(trip.odometerStartKm)));
+  const [odometerEnd, setOdometerEnd] = useState(padValue(trip.odometerStartKm));
   const [showPassengers, setShowPassengers] = useState(false);
   const [selected, setSelected] = useState<string[]>([]);
   const [note, setNote] = useState('');

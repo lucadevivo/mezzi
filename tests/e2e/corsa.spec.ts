@@ -61,3 +61,29 @@ test('km non registrati: il rilevatore può dire che non sono suoi', async ({ pa
   // La risposta è pubblica: compare nell'elenco, non solo sul pulsante di chi ha risposto.
   await expect(page.getByText('non sono miei', { exact: true })).toBeVisible();
 });
+
+/**
+ * Regressione: col contachilometri a decimali il tastierino non aveva la virgola e il
+ * valore di partenza veniva arrotondato per difetto. Risultato: il campo proponeva un
+ * numero piu' basso di quello vero e l'app rifiutava ogni corsa, perche' il
+ * contachilometri non puo' tornare indietro.
+ */
+test('un contachilometri con i decimali non blocca la corsa successiva', async ({ page }) => {
+  await page.goto('/mezzi/v-fiesta');
+  await enterOdometer(page, 'Contachilometri adesso', '100');
+  await page.getByRole('button', { name: 'Avanti' }).click();
+  await page.getByRole('button', { name: 'Avvia la corsa' }).click();
+
+  await enterOdometer(page, 'Contachilometri di arrivo', '150,5');
+  await page.getByRole('button', { name: 'Chiudi la corsa' }).click();
+  // 50 km in pochi secondi: il controllo di plausibilita' chiede conferma, come deve.
+  await expect(page.getByText(/200 km\/h/)).toBeVisible();
+  await page.getByRole('button', { name: 'Confermo, chiudi la corsa' }).click();
+
+  await expect(page.getByText('150,5 km', { exact: true })).toBeVisible();
+
+  // La corsa dopo parte dal valore vero, virgola compresa, e non viene rifiutata.
+  await expect(page.getByLabel('Contachilometri adesso')).toHaveValue('150,5');
+  await page.getByRole('button', { name: 'Avanti' }).click();
+  await expect(page.getByRole('button', { name: 'Avvia la corsa' })).toBeVisible();
+});

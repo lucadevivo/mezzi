@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from 'react';
 import { recordRefuelAction, type ActionState } from '@/app/actions';
+import { padValue } from '@/components/odometer-pad';
 import { TankGauge } from '@/components/tank-gauge';
 import { ErrorBanner, Field, NumberInput, PrimaryButton } from '@/components/ui';
 import { formatLiters } from '@/lib/format';
@@ -51,7 +52,7 @@ export function RefuelForm({
         gia' l'ultimo valore. I litri nemmeno: si mettono soldi, non litri, e i litri
         si calcolano dal prezzo esposto.
       */}
-      <input type="hidden" name="odometerKm" value={Math.round(currentOdometerKm)} />
+      <input type="hidden" name="odometerKm" value={padValue(currentOdometerKm)} />
 
       <div className="grid grid-cols-2 gap-3">
         <Field label="Quanto hai messo (€)">

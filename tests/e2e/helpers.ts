@@ -10,7 +10,9 @@ export async function enterOdometer(page: Page, label: string, value: string) {
   await page.getByLabel(label).click();
   await page.getByRole('button', { name: 'Azzera' }).click();
   for (const digit of value) {
-    await page.getByRole('button', { name: digit, exact: true }).click();
+    // La virgola ha un nome accessibile a parole: «,» da sola non si legge.
+    const name = digit === ',' ? 'Virgola' : digit;
+    await page.getByRole('button', { name, exact: true }).click();
   }
   await expect(page.getByLabel(label)).toHaveValue(value);
   // Chiude il tastierino: aperto copre il pulsante di conferma sotto.

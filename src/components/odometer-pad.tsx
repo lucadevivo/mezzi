@@ -2,7 +2,10 @@
 
 import { useState } from 'react';
 
-const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'C', '0', '⌫'] as const;
+const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', ',', '0', '⌫'] as const;
+
+/** Il valore come lo scrive il tastierino: virgola, che è quello che l'app poi rilegge. */
+export const padValue = (km: number) => String(km).replace('.', ',');
 
 /**
  * Tastierino per il contachilometri.
@@ -27,10 +30,14 @@ export function OdometerPad({
   const [padOpen, setPadOpen] = useState(false);
 
   const press = (key: string) => {
-    if (key === 'C') return onChange('');
     if (key === '⌫') return onChange(value.slice(0, -1));
+    // Una virgola sola, e mai come primo tasto: «,3» non è un contachilometri.
+    if (key === ',') {
+      if (value.includes(',') || value === '') return;
+      return onChange(value + ',');
+    }
     // Niente zeri iniziali: un contachilometri non comincia per zero.
-    onChange((value === '0' ? key : value + key).slice(0, 8));
+    onChange((value === '0' ? key : value + key).slice(0, 10));
   };
 
   return (
@@ -58,7 +65,9 @@ export function OdometerPad({
               <button
                 key={key}
                 type="button"
-                aria-label={key === '⌫' ? 'Cancella una cifra' : key === 'C' ? 'Azzera' : key}
+                aria-label={
+                  key === '⌫' ? 'Cancella una cifra' : key === ',' ? 'Virgola' : key
+                }
                 onClick={() => press(key)}
                 className="tabular min-h-16 rounded-2xl glass-2 text-2xl text-ink active:bg-surface"
               >
@@ -67,13 +76,22 @@ export function OdometerPad({
             ))}
           </div>
           {/* Il tastierino è alto: finché resta aperto copre il pulsante sotto. */}
-          <button
-            type="button"
-            onClick={() => setPadOpen(false)}
-            className="min-h-12 w-full rounded-2xl border border-line text-base text-ink-dim"
-          >
-            Fatto
-          </button>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => onChange('')}
+              className="min-h-12 rounded-2xl border border-line text-base text-ink-dim"
+            >
+              Azzera
+            </button>
+            <button
+              type="button"
+              onClick={() => setPadOpen(false)}
+              className="min-h-12 rounded-2xl border border-line text-base text-ink-dim"
+            >
+              Fatto
+            </button>
+          </div>
         </div>
       ) : null}
     </div>

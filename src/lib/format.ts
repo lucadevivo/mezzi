@@ -1,4 +1,4 @@
-const KM = new Intl.NumberFormat('it-IT', { maximumFractionDigits: 0 });
+const KM = new Intl.NumberFormat('it-IT', { maximumFractionDigits: 1 });
 const EURO = new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' });
 const LITERS = new Intl.NumberFormat('it-IT', { maximumFractionDigits: 1 });
 const DATE = new Intl.DateTimeFormat('it-IT', {
