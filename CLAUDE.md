@@ -138,6 +138,18 @@ ma non compaiono nella pagina "chi deve cosa a chi".
 
 ## Deploy
 
+**Due trappole pagate, entrambe dello stesso tipo: `git archive | ssh 'tar x'` è un
+*aggiornamento*, non una copia fedele.**
+
+- **Non cancella niente.** I file tolti dal repo restano sul server e finiscono nel
+  contesto di build: dopo una cancellazione va fatto `rm -rf ~/apps/mezzi/src
+  ~/apps/mezzi/tests` prima di estrarre, altrimenti il build fallisce su import morti.
+- **Archivia la cartella da cui lo lanci.** Una volta è partito con la shell dentro
+  `~/brain` e sul server è finito il vault personale (`claude-memory/`, `conversations/`,
+  `BRAIN.md`). Sempre `git -C ~/Progetti/mezzi archive …`, e dopo un deploy strano
+  guarda cosa c'è davvero in `~/apps/mezzi`.
+
+
 - Docker multi-stage, immagine slim, utente non-root, migrazioni automatiche all'avvio.
 - Binding su `127.0.0.1:${PORT}` (default 8430). Nessuna porta aperta sul router.
 - Ingresso da Cloudflare Tunnel su `mezzi.webluca.app` (stesso `cloudflared` di luca-server).
