@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { OfflineSync } from '@/components/offline-sync';
 import { TabBar } from '@/components/tab-bar';
 import { requireUser } from '@/lib/auth/session';
-import { listDeadlines, notifyDueDeadlines } from '@/lib/services/deadlines';
+import { notifyDueDeadlines } from '@/lib/services/deadlines';
 import { notifyUnclaimedResolved, remindOpenTrips } from '@/lib/services/notifications';
 import { pendingConfirmationsFor } from '@/lib/services/settlements';
 import { listPendingUnclaimed, resolveExpiredUnclaimed } from '@/lib/services/unclaimed';
@@ -20,8 +20,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   const pendingClaims = listPendingUnclaimed().length;
   const pendingSettlements = pendingConfirmationsFor(user.id).length;
-  const dueDeadlines = listDeadlines().filter((row) => row.status.state !== 'ok').length;
-  const elsewhere = pendingSettlements + dueDeadlines;
+  // Il badge di "Altro" conta solo i pareggi da confermare: le scadenze avvisano da
+  // sole con la notifica, e dall'elenco non ci si arriva piu'.
+  const elsewhere = pendingSettlements;
 
   return (
     <div className="mx-auto flex w-full max-w-md flex-1 flex-col">
@@ -36,7 +37,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         <Link
           href="/impostazioni"
           aria-label={`Impostazioni di ${user.name}`}
-          className="glass flex size-10 items-center justify-center rounded-full text-base font-semibold"
+          className="flex size-11 items-center justify-center rounded-full border border-line bg-surface-2 text-lg font-semibold text-ink"
         >
           {user.name.slice(0, 1).toUpperCase()}
         </Link>

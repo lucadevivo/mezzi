@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import { requireUser } from '@/lib/auth/session';
-import { listDeadlines } from '@/lib/services/deadlines';
 import { pendingConfirmationsFor } from '@/lib/services/settlements';
 
 export const dynamic = 'force-dynamic';
@@ -9,10 +8,11 @@ export const dynamic = 'force-dynamic';
 export default async function MorePage() {
   const me = await requireUser();
   const pendingSettlements = pendingConfirmationsFor(me.id).length;
-  const dueDeadlines = listDeadlines().filter((row) => row.status.state !== 'ok').length;
 
+  // Impostazioni sta nell'avatar in alto a destra, non qui: due strade per la stessa
+  // schermata sono una di troppo. Spese fisse e Scadenze restano raggiungibili per URL
+  // (`/spese`, `/scadenze`) ma sono fuori dall'elenco: nessuno le apriva.
   const entries = [
-    { href: '/spese', label: 'Spese fisse', hint: 'Assicurazione, bollo, tagliandi, riparazioni' },
     {
       href: '/pareggi',
       label: 'Pareggi',
@@ -20,14 +20,7 @@ export default async function MorePage() {
       badge: pendingSettlements,
     },
     { href: '/storico', label: 'Storico', hint: 'Corse e rifornimenti, con filtri' },
-    {
-      href: '/scadenze',
-      label: 'Scadenze',
-      hint: 'Bollo, revisione, tagliando',
-      badge: dueDeadlines,
-    },
     { href: '/statistiche', label: 'Statistiche', hint: 'Km, costi, consumi, esportazioni' },
-    { href: '/impostazioni', label: 'Impostazioni', hint: 'Notifiche e uso senza rete' },
     ...(me.role === 'admin'
       ? [{ href: '/admin', label: 'Admin', hint: 'Inviti, utenti, mezzi, audit log' }]
       : []),
