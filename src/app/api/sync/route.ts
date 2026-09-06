@@ -42,6 +42,7 @@ const refuelPayload = z.object({
   pricePerLiterCents: z.number().int().positive().nullable().optional(),
   totalCents: z.number().int().positive().nullable().optional(),
   tankFractionAfter: z.number().min(0).max(1).nullable().optional(),
+  beneficiaryIds: z.array(z.string()).optional(),
   stationName: z.string().max(100).optional(),
 });
 
@@ -84,6 +85,7 @@ export async function POST(request: Request) {
           userId: data.payerId,
           odometerKm: data.odometerKm,
           tankFractionAfter: data.tankFractionAfter ?? null,
+          beneficiaryIds: data.beneficiaryIds,
           stationName: data.stationName,
           confirmOverCapacity: true,
           refueledAt: occurredAt,

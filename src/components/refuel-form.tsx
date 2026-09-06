@@ -38,6 +38,11 @@ export function RefuelForm({
   // battuto con una mano sola davanti alla pompa.
   const [pricePerLiter, setPricePerLiter] = useState('');
   const [total, setTotal] = useState('');
+  const [payerId, setPayerId] = useState(meId);
+  // Chi divide i costi: sono loro a poter ricevere l'autonomia comprata da un esterno.
+  const inConti = payers.filter((p) => p.billable);
+  const [beneficiari, setBeneficiari] = useState<string[]>(() => inConti.map((p) => p.id));
+  const pagaUnEsterno = payers.find((p) => p.id === payerId)?.billable === false;
 
   const parse = (value: string) => Number(value.replace(',', '.'));
   const liters = parse(total) / parse(pricePerLiter);
@@ -83,7 +88,8 @@ export function RefuelForm({
         <span className="shrink-0 text-sm text-ink-dim">Chi ha pagato</span>
         <select
           name="payerId"
-          defaultValue={meId}
+          value={payerId}
+          onChange={(e) => setPayerId(e.target.value)}
           className="min-h-12 w-full rounded-2xl glass-2 px-3 text-base text-ink"
         >
           {payers.map((p) => (
@@ -94,6 +100,49 @@ export function RefuelForm({
           ))}
         </select>
       </label>
+
+      {/*
+        Paga qualcuno che non è nei conti: l'autonomia comprata non può restare sul suo
+        saldo, perché non guida abbastanza da consumarla. A chi va lo decidete voi, e si
+        divide in parti uguali tra chi spuntate.
+      */}
+      {pagaUnEsterno ? (
+        <fieldset>
+          <legend className="mb-2 text-sm text-ink-dim">
+            A chi vanno i chilometri, in parti uguali
+          </legend>
+          <div className="flex flex-wrap gap-2">
+            {inConti.map((p) => {
+              const scelto = beneficiari.includes(p.id);
+              return (
+                <button
+                  key={p.id}
+                  type="button"
+                  aria-pressed={scelto}
+                  onClick={() =>
+                    setBeneficiari((attuali) =>
+                      scelto ? attuali.filter((id) => id !== p.id) : [...attuali, p.id],
+                    )
+                  }
+                  className={`min-h-11 rounded-full border px-4 text-base font-medium ${
+                    scelto ? 'border-accent bg-accent text-accent-ink' : 'border-line text-ink-dim'
+                  }`}
+                >
+                  {p.name}
+                </button>
+              );
+            })}
+          </div>
+          {beneficiari.map((id) => (
+            <input key={id} type="hidden" name="beneficiari" value={id} />
+          ))}
+          <p className="mt-1 text-xs text-ink-dim">
+            {beneficiari.length === 0
+              ? 'Se non scegli nessuno vanno divisi tra tutti.'
+              : `${litersPreview} divisi in ${beneficiari.length}.`}
+          </p>
+        </fieldset>
+      ) : null}
 
       <ErrorBanner>{state.error}</ErrorBanner>
       {state.needsConfirm ? <input type="hidden" name="conferma" value="si" /> : null}

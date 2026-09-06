@@ -135,10 +135,13 @@ hanno password, non dividono i costi — ma i loro chilometri devono esistere o 
 torna. Si creano scrivendo un nome, come le categorie (`resolveGuest`), dal terzo pulsante sui km
 non registrati: «È stato qualcun altro». Sono `billable:false`, `can_login:false`.
 
-**Se un ospite paga il carburante, l'autonomia non resta sul suo saldo.** Lui non guida abbastanza
-da consumarla, e quei km resterebbero fermi lì mentre i fratelli restano indietro. Il regalo va dove
-serve (`distributeGuestKm`): **prima tappa i buchi**, in proporzione a quanto ognuno è indietro, poi
-l'avanzo si divide in parti uguali. Vale per chiunque non sia fatturabile, nonna compresa.
+**Se un ospite paga il carburante, l'autonomia non resta sul suo saldo** — non guida abbastanza da
+consumarla e quei km resterebbero fermi lì. **A chi vanno lo decide chi registra il rifornimento**:
+nel form compare la fila dei nomi (solo quando paga un non fatturabile), si spunta chi si vuole e i
+km si dividono **in parti uguali** tra loro (`splitKmAmong`). Chi riceve la sua parte la usa come
+viene: se copre un debito bene, se avanza resta autonomia sua. Nessuno spuntato = divisi tra tutti.
+Provata anche la strada automatica «tappa prima i buchi in proporzione»: scartata, perché la scelta
+è di chi c'era, non di una formula.
 
 ## Convenzioni
 

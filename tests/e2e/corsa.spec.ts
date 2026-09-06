@@ -116,3 +116,25 @@ test('km di un ospite: si crea al volo e la corsa è sua', async ({ page }) => {
   await page.goto('/saldi');
   await expect(page.getByText('Papà')).toBeVisible();
 });
+
+/**
+ * Papà mette benzina: l'autonomia non resta sua — non guida abbastanza da consumarla —
+ * e a chi va lo decide chi registra il rifornimento.
+ */
+test('il carburante di un esterno va a chi si decide, in parti uguali', async ({ page }) => {
+  await page.goto('/mezzi/v-500/rifornimento');
+  await expect(page.getByRole('heading', { name: /^Rifornimento/ })).toBeVisible();
+
+  await page.getByLabel('Quanto hai messo (€)').fill('36,00');
+  await page.getByLabel('€ al litro').fill('1,80');
+  await page.getByLabel('Chi ha pagato').selectOption({ label: 'Papà (esterno)' });
+
+  // Comparso il selettore, con tutti spuntati: si tolgono gli altri due e restano
+  // 340 km (20 litri a 17 km/l) tutti a Matteo.
+  await page.getByRole('button', { name: 'Luca', exact: true }).click();
+  await page.getByRole('button', { name: 'Gabriele', exact: true }).click();
+  await page.getByRole('button', { name: 'Registra il rifornimento' }).click();
+
+  await page.goto('/saldi');
+  await expect(page.getByText('340 km di autonomia')).toBeVisible();
+});

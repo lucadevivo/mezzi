@@ -185,6 +185,7 @@ const refuelSchema = z.object({
   liters: optionalDecimal.optional(),
   pricePerLiter: optionalDecimal,
   total: optionalDecimal,
+  beneficiari: z.array(z.string()).optional(),
   tankFractionAfter: z
     .string()
     .trim()
@@ -200,7 +201,10 @@ export async function recordRefuelAction(
   formData: FormData,
 ): Promise<ActionState> {
   await requireUser();
-  const parsed = refuelSchema.safeParse(Object.fromEntries(formData));
+  const parsed = refuelSchema.safeParse({
+    ...Object.fromEntries(formData),
+    beneficiari: formData.getAll('beneficiari').map(String),
+  });
   if (!parsed.success) return { error: 'Dati del rifornimento non validi' };
 
   const { vehicleId, payerId, odometerKm, liters, pricePerLiter, total } = parsed.data;
@@ -217,6 +221,7 @@ export async function recordRefuelAction(
       userId: payerId,
       odometerKm,
       tankFractionAfter: parsed.data.tankFractionAfter,
+      beneficiaryIds: parsed.data.beneficiari,
       stationName: parsed.data.stationName,
       confirmOverCapacity: parsed.data.conferma === 'si',
       ...amounts,

@@ -1,4 +1,4 @@
-import { splitCentsAmong, splitCentsByWeight } from './money';
+import { splitCentsAmong } from './money';
 import type { LedgerEntry, UserId } from './types';
 
 /**
@@ -90,46 +90,16 @@ function formatKmShort(km: number): string {
 }
 
 /**
- * Come si spartisce l'autonomia comprata da chi **non** è nei conti — papà, la nonna,
- * un amico che mette venti euro.
+ * L'autonomia comprata da chi **non** è nei conti — papà, la nonna, un amico — va
+ * divisa in parti uguali tra le persone a cui la si vuole dare: lo decide chi registra
+ * il rifornimento, non una formula.
  *
- * Tenerla sul suo saldo non servirebbe a niente: lui non guida abbastanza da
- * consumarla e quei chilometri resterebbero fermi lì per sempre, mentre i fratelli
- * restano indietro. Quindi il regalo va dove serve: **prima tappa i buchi**, in
- * proporzione a quanto ognuno è indietro, e solo l'avanzo si divide in parti uguali.
- *
- * Si lavora in decimi di km, così la somma delle quote fa esattamente i km comprati.
+ * Chi riceve la sua parte la usa come viene: se copre un debito, bene; se avanza, resta
+ * autonomia sua. Si lavora in decimi di km, così la somma torna esatta.
  */
-export function distributeGuestKm(
-  totalKm: number,
-  balancesKm: ReadonlyMap<UserId, number>,
-): Map<UserId, number> {
-  const persone = [...balancesKm.keys()];
-  const quote = new Map<UserId, number>(persone.map((id) => [id, 0]));
-  if (persone.length === 0 || totalKm <= 0) return quote;
-
-  let daDare = Math.round(totalKm * 10);
-
-  const debiti = new Map<UserId, number>(
-    [...balancesKm]
-      .filter(([, km]) => km < 0)
-      .map(([id, km]) => [id, Math.round(-km * 10)]),
-  );
-  const debitoTotale = [...debiti.values()].reduce((a, b) => a + b, 0);
-
-  if (debitoTotale > 0) {
-    const perDebiti = Math.min(daDare, debitoTotale);
-    for (const [id, parte] of splitCentsByWeight(perDebiti, debiti)) {
-      quote.set(id, (quote.get(id) ?? 0) + parte);
-    }
-    daDare -= perDebiti;
-  }
-
-  if (daDare > 0) {
-    for (const [id, parte] of splitCentsAmong(daDare, persone)) {
-      quote.set(id, (quote.get(id) ?? 0) + parte);
-    }
-  }
-
-  return new Map([...quote].map(([id, decimi]) => [id, decimi / 10]));
+export function splitKmAmong(totalKm: number, userIds: readonly UserId[]): Map<UserId, number> {
+  const persone = [...new Set(userIds)];
+  if (persone.length === 0 || totalKm <= 0) return new Map();
+  const decimi = splitCentsAmong(Math.round(totalKm * 10), persone);
+  return new Map([...decimi].map(([id, parte]) => [id, parte / 10]));
 }

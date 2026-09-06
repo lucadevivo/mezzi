@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   autonomyInTankKm,
   balances,
-  distributeGuestKm,
+  splitKmAmong,
   kmBought,
   ledgerTotalKm,
   refuelSuggestion,
@@ -76,31 +76,24 @@ describe('splitTripKm', () => {
   });
 });
 
-describe('distributeGuestKm', () => {
-  it('prima tappa i buchi, in proporzione a quanto ognuno è indietro', () => {
-    // 100 km comprati da papà, con 40 km di debiti in giro: 40 vanno a coprirli
-    // (30 a chi è a −30, 10 a chi è a −10), i 60 che avanzano si dividono in tre.
-    const quote = distributeGuestKm(100, new Map([['a', -30], ['b', -10], ['c', 50]]));
-    expect(quote.get('a')).toBeCloseTo(30 + 20, 1);
-    expect(quote.get('b')).toBeCloseTo(10 + 20, 1);
-    expect(quote.get('c')).toBeCloseTo(20, 1);
+describe('splitKmAmong', () => {
+  it('divide in parti uguali tra chi è stato scelto', () => {
+    const quote = splitKmAmong(100, ['luca', 'gabriele']);
+    expect(quote.get('luca')).toBe(50);
+    expect(quote.get('gabriele')).toBe(50);
+  });
+
+  it('a una persona sola vanno tutti', () => {
+    expect(splitKmAmong(176.4, ['luca']).get('luca')).toBe(176.4);
+  });
+
+  it('in tre non si perde un decimo per strada', () => {
+    const quote = splitKmAmong(100, ['a', 'b', 'c']);
     const somma = [...quote.values()].reduce((x, y) => x + y, 0);
     expect(Math.round(somma * 10) / 10).toBe(100);
   });
 
-  it('se i debiti superano il regalo, si dividono in proporzione e basta', () => {
-    const quote = distributeGuestKm(50, new Map([['a', -150], ['b', -50]]));
-    expect(quote.get('a')).toBeCloseTo(37.5, 1);
-    expect(quote.get('b')).toBeCloseTo(12.5, 1);
-  });
-
-  it('se sono tutti in pari, parti uguali', () => {
-    const quote = distributeGuestKm(30, new Map([['a', 0], ['b', 10]]));
-    expect(quote.get('a')).toBe(15);
-    expect(quote.get('b')).toBe(15);
-  });
-
-  it('senza nessuno a cui darla, non inventa quote', () => {
-    expect(distributeGuestKm(100, new Map()).size).toBe(0);
+  it('senza nessuno scelto non inventa quote', () => {
+    expect(splitKmAmong(100, []).size).toBe(0);
   });
 });

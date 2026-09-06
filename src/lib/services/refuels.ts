@@ -1,33 +1,13 @@
 import { randomUUID } from 'node:crypto';
 import { desc, eq } from 'drizzle-orm';
-import { balances, distributeGuestKm, kmBought, resolveConsumption } from '@/lib/billing';
+import { kmBought, resolveConsumption, splitKmAmong } from '@/lib/billing';
 import { db } from '@/lib/db';
-import { ledgerEntries, refuels, user, vehicles } from '@/lib/db/schema';
+import { refuels, user, vehicles } from '@/lib/db/schema';
 import { logAudit } from './audit';
 import { addLedgerEntries } from './ledger';
 import { billableMemberIds, getVehicle } from './vehicles';
 
-type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
-type Db = typeof db | Tx;
-
 export class RefuelServiceError extends Error {}
-
-/** I saldi in km di chi divide i costi, letti dentro la transazione in corso. */
-function saldiCorrenti(userIds: readonly string[], tx: Db): Map<string, number> {
-  const tutti = balances(
-    tx
-      .select()
-      .from(ledgerEntries)
-      .all()
-      .map((row) => ({
-        userId: row.userId,
-        amountKm: row.amountKm,
-        type: row.type,
-        occurredAt: row.occurredAt,
-      })),
-  );
-  return new Map(userIds.map((id) => [id, tutti.get(id) ?? 0]));
-}
 
 export interface RecordRefuelInput {
   vehicleId: string;
@@ -38,6 +18,8 @@ export interface RecordRefuelInput {
   totalCents: number;
   odometerKm: number;
   tankFractionAfter: number | null;
+  /** A chi va l'autonomia, quando paga qualcuno che non è nei conti. */
+  beneficiaryIds?: readonly string[];
   stationName?: string | null;
   refueledAt?: Date;
   /** L'utente ha confermato di aver messo più litri della capacità dichiarata. */
@@ -91,16 +73,18 @@ export function recordRefuel(input: RecordRefuelInput): { refuelId: string } {
 
     /*
      * Se a pagare è qualcuno che non sta nei conti — papà, la nonna, un amico —
-     * l'autonomia non resta sul suo saldo: lui non guida abbastanza da consumarla e
-     * quei chilometri resterebbero fermi lì per sempre. Va dove serve: prima tappa i
-     * buchi di chi è indietro, poi l'avanzo si divide in parti uguali.
+     * l'autonomia non può restare sul suo saldo: non guida abbastanza da consumarla e
+     * quei chilometri resterebbero fermi lì. **A chi vanno lo decide chi registra il
+     * rifornimento**, e si dividono in parti uguali tra le persone indicate. Se non
+     * viene indicato nessuno si dividono tra tutti quelli che dividono i costi.
      */
     const pagante = tx.select().from(user).where(eq(user.id, input.userId)).get();
     const membri = billableMemberIds(input.vehicleId);
     const regalo = pagante && !pagante.billable && membri.length > 0;
 
+    const beneficiari = (input.beneficiaryIds ?? []).filter((id) => membri.includes(id));
     const quote = regalo
-      ? distributeGuestKm(km, saldiCorrenti(membri, tx))
+      ? splitKmAmong(km, beneficiari.length > 0 ? beneficiari : membri)
       : new Map([[input.userId, km]]);
 
     addLedgerEntries(
