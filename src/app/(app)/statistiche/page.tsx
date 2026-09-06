@@ -7,6 +7,7 @@ import {
   consumptionTrend,
   monthLabel,
   monthPeriod,
+  statsByCategory,
   statsByUser,
   statsByVehicle,
 } from '@/lib/services/stats';
@@ -25,6 +26,7 @@ export default async function StatsPage() {
   const period = monthPeriod();
   const byUser = statsByUser(period);
   const byVehicle = statsByVehicle(period);
+  const byCategory = statsByCategory(period);
   const mostUsed = byVehicle.find((v) => v.km > 0);
 
   const trends = byVehicle
@@ -70,6 +72,24 @@ export default async function StatsPage() {
           />
         </Card>
       </section>
+
+      {/* Le etichette servono a questo: sapere quanti km sono andati in consegne. */}
+      {byCategory.length > 0 ? (
+        <section className="space-y-3">
+          <h2 className="text-[15px] font-semibold text-ink-dim">Chilometri per categoria</h2>
+          <Card className="px-4 py-4">
+            <BarList
+              emptyHint="Nessuna corsa etichettata questo mese."
+              data={byCategory.map((c) => ({
+                label: c.name,
+                value: c.km,
+                color: 'var(--color-ink-dim)',
+                display: formatKm(c.km),
+              }))}
+            />
+          </Card>
+        </section>
+      ) : null}
 
       <section className="space-y-3">
         <h2 className="text-[15px] font-semibold text-ink-dim">Costo per persona</h2>

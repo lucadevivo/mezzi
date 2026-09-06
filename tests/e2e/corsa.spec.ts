@@ -98,3 +98,21 @@ test('una corsa si può etichettare, e l’etichetta nasce da sé', async ({ pag
   await page.getByLabel('Filtra per categoria').selectOption({ label: 'consegne' });
   await expect(page.getByText('30 km')).toBeVisible();
 });
+
+/**
+ * Papà prende la macchina: non è un utente dell'app, ma i suoi km devono esistere
+ * o il contachilometri non torna. L'ospite si crea scrivendo un nome.
+ */
+test('km di un ospite: si crea al volo e la corsa è sua', async ({ page }) => {
+  // I 60 km non reclamati dello Scarabeo sono ancora lì dal test precedente.
+  await page.goto('/reclami');
+  await expect(page.getByText(/60 km non registrati/)).toBeVisible();
+  await page.getByRole('button', { name: /qualcun altro/ }).click();
+  await page.getByPlaceholder('Papà').fill('Papà');
+  await page.getByRole('button', { name: 'Addebita a chi ho scritto' }).click();
+
+  // Sparisce dai reclami e i km finiscono su di lui, fuori dai conti tra fratelli.
+  await expect(page.getByText(/non registrati su questo mezzo/)).toHaveCount(0);
+  await page.goto('/saldi');
+  await expect(page.getByText('Papà')).toBeVisible();
+});

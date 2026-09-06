@@ -2,6 +2,7 @@ import { desc, eq } from 'drizzle-orm';
 import { ClaimButtons } from '@/components/claim-buttons';
 import { Card, EmptyState } from '@/components/ui';
 import { requireUser } from '@/lib/auth/session';
+import { listGuests } from '@/lib/services/guests';
 import { db } from '@/lib/db';
 import { unclaimedTripResponses, unclaimedTrips, user, vehicles } from '@/lib/db/schema';
 import { formatDay, formatEuro, formatKm, formatRemaining } from '@/lib/format';
@@ -11,6 +12,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function ClaimsPage() {
   const me = await requireUser();
+  const guests = listGuests().map((g) => g.name);
   const now = new Date();
 
   const rows = db
@@ -79,7 +81,11 @@ export default async function ClaimsPage() {
                     ? ` · se nessuno risponde, vanno a ${names.get(resolution.autoAssignCandidate) ?? '?'}`
                     : ''}
                 </p>
-                <ClaimButtons unclaimedTripId={row.id} answered={mine?.answer ?? null} />
+                <ClaimButtons
+                  unclaimedTripId={row.id}
+                  answered={mine?.answer ?? null}
+                  guests={guests}
+                />
               </>
             ) : (
               <p className="text-sm text-ink-dim">{row.resolutionNote}</p>

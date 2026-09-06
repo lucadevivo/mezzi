@@ -128,6 +128,18 @@ cosa. Non c'è una schermata per gestirle, ed è voluto: con quattro persone e c
 sarebbe una cerimonia. Nello storico compaiono come pastiglia sulla riga e c'è la tendina per
 filtrare, che appare solo quando almeno un'etichetta esiste.
 
+## Ospiti occasionali
+
+Papà che prende la macchina, un amico, la mamma: **non sono utenti dell'app** — non entrano, non
+hanno password, non dividono i costi — ma i loro chilometri devono esistere o il contachilometri non
+torna. Si creano scrivendo un nome, come le categorie (`resolveGuest`), dal terzo pulsante sui km
+non registrati: «È stato qualcun altro». Sono `billable:false`, `can_login:false`.
+
+**Se un ospite paga il carburante, l'autonomia non resta sul suo saldo.** Lui non guida abbastanza
+da consumarla, e quei km resterebbero fermi lì mentre i fratelli restano indietro. Il regalo va dove
+serve (`distributeGuestKm`): **prima tappa i buchi**, in proporzione a quanto ognuno è indietro, poi
+l'avanzo si divide in parti uguali. Vale per chiunque non sia fatturabile, nonna compresa.
+
 ## Convenzioni
 
 - Codice e DB in **inglese**, UI in **italiano** (tono diretto: "Metti 25 € al prossimo pieno").

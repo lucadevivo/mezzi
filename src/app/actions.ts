@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { completeRefuelAmounts, tripCost } from '@/lib/billing';
 import { acceptInvite, createInvite } from '@/lib/auth/invites';
 import { requireAdmin, requireUser } from '@/lib/auth/session';
+import { resolveGuest } from '@/lib/services/guests';
 import { getEnv } from '@/lib/env';
 import { completeDeadline, createDeadline } from '@/lib/services/deadlines';
 import { reverseRefuel, reverseTrip } from '@/lib/services/history';
@@ -16,7 +17,7 @@ import {
 import { removeSubscription, saveSubscription } from '@/lib/services/push';
 import { recordRefuel } from '@/lib/services/refuels';
 import { checkOdometer, closeTrip, startTrip, takeOverOpenTrip } from '@/lib/services/trips';
-import { respondToUnclaimed } from '@/lib/services/unclaimed';
+import { respondToUnclaimed, assignUnclaimedToNonBillable } from '@/lib/services/unclaimed';
 
 export interface ActionState {
   error?: string;
@@ -278,6 +279,36 @@ export async function reverseAction(_prev: ActionState, formData: FormData): Pro
   }
 
   revalidatePath('/storico');
+  revalidatePath('/saldi');
+  revalidatePath('/');
+  return {};
+}
+
+const guestSchema = z.object({
+  unclaimedTripId: z.string().min(1),
+  nome: z.string().trim().min(1).max(40),
+});
+
+/**
+ * «Questi km li ha fatti papà.» L'ospite non è un utente dell'app: non entra e non
+ * divide i costi, ma i suoi chilometri devono esistere o il contachilometri non torna.
+ */
+export async function assignUnclaimedToGuestAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const me = await requireUser();
+  const parsed = guestSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return { error: 'Serve il nome di chi ha guidato' };
+
+  try {
+    const guestId = resolveGuest(parsed.data.nome);
+    assignUnclaimedToNonBillable(parsed.data.unclaimedTripId, guestId, me.id);
+  } catch (error) {
+    return fail(error);
+  }
+
+  revalidatePath('/reclami');
   revalidatePath('/saldi');
   revalidatePath('/');
   return {};

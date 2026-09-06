@@ -1,7 +1,7 @@
 import { and, eq, gte, lte } from 'drizzle-orm';
 import { tankToTankSamples } from '@/lib/billing';
 import { db } from '@/lib/db';
-import { refuels, trips, user, vehicles } from '@/lib/db/schema';
+import { refuels, tripCategories, trips, user, vehicles } from '@/lib/db/schema';
 
 export interface Period {
   from: Date;
@@ -31,6 +31,36 @@ function closedTripsIn(period: Period, vehicleId?: string) {
     .from(trips)
     .where(and(...where))
     .all();
+}
+
+export interface CategoryStat {
+  name: string;
+  km: number;
+  trips: number;
+}
+
+/**
+ * Quanti km per etichetta nel periodo: «consegne» è la ragione per cui esistono le
+ * categorie, e senza questo conto restavano una decorazione. Le corse senza etichetta
+ * finiscono sotto «senza categoria», che è un'informazione anche quella.
+ */
+export function statsByCategory(period: Period, vehicleId?: string): CategoryStat[] {
+  const categories = db.select().from(tripCategories).all();
+  const nomeDi = (id: string | null) =>
+    (id && categories.find((c) => c.id === id)?.name) || 'senza categoria';
+
+  const totals = new Map<string, { km: number; trips: number }>();
+  for (const trip of closedTripsIn(period, vehicleId)) {
+    const nome = nomeDi(trip.categoryId);
+    const current = totals.get(nome) ?? { km: 0, trips: 0 };
+    current.km += trip.distanceKm ?? 0;
+    current.trips += 1;
+    totals.set(nome, current);
+  }
+
+  return [...totals]
+    .map(([name, value]) => ({ name, km: Math.round(value.km * 10) / 10, trips: value.trips }))
+    .sort((a, b) => b.km - a.km);
 }
 
 export interface UserStat {

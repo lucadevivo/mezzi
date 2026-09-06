@@ -1,3 +1,4 @@
+import { splitCentsAmong, splitCentsByWeight } from './money';
 import type { LedgerEntry, UserId } from './types';
 
 /**
@@ -86,4 +87,49 @@ export function refuelSuggestion(
 /** Solo per i messaggi: la formattazione vera sta in `@/lib/format`, che qui non entra. */
 function formatKmShort(km: number): string {
   return `${km.toFixed(km % 1 === 0 ? 0 : 1).replace('.', ',')} km`;
+}
+
+/**
+ * Come si spartisce l'autonomia comprata da chi **non** è nei conti — papà, la nonna,
+ * un amico che mette venti euro.
+ *
+ * Tenerla sul suo saldo non servirebbe a niente: lui non guida abbastanza da
+ * consumarla e quei chilometri resterebbero fermi lì per sempre, mentre i fratelli
+ * restano indietro. Quindi il regalo va dove serve: **prima tappa i buchi**, in
+ * proporzione a quanto ognuno è indietro, e solo l'avanzo si divide in parti uguali.
+ *
+ * Si lavora in decimi di km, così la somma delle quote fa esattamente i km comprati.
+ */
+export function distributeGuestKm(
+  totalKm: number,
+  balancesKm: ReadonlyMap<UserId, number>,
+): Map<UserId, number> {
+  const persone = [...balancesKm.keys()];
+  const quote = new Map<UserId, number>(persone.map((id) => [id, 0]));
+  if (persone.length === 0 || totalKm <= 0) return quote;
+
+  let daDare = Math.round(totalKm * 10);
+
+  const debiti = new Map<UserId, number>(
+    [...balancesKm]
+      .filter(([, km]) => km < 0)
+      .map(([id, km]) => [id, Math.round(-km * 10)]),
+  );
+  const debitoTotale = [...debiti.values()].reduce((a, b) => a + b, 0);
+
+  if (debitoTotale > 0) {
+    const perDebiti = Math.min(daDare, debitoTotale);
+    for (const [id, parte] of splitCentsByWeight(perDebiti, debiti)) {
+      quote.set(id, (quote.get(id) ?? 0) + parte);
+    }
+    daDare -= perDebiti;
+  }
+
+  if (daDare > 0) {
+    for (const [id, parte] of splitCentsAmong(daDare, persone)) {
+      quote.set(id, (quote.get(id) ?? 0) + parte);
+    }
+  }
+
+  return new Map([...quote].map(([id, decimi]) => [id, decimi / 10]));
 }

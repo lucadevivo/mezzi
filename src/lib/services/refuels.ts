@@ -1,13 +1,33 @@
 import { randomUUID } from 'node:crypto';
 import { desc, eq } from 'drizzle-orm';
-import { kmBought, resolveConsumption } from '@/lib/billing';
+import { balances, distributeGuestKm, kmBought, resolveConsumption } from '@/lib/billing';
 import { db } from '@/lib/db';
-import { refuels, vehicles } from '@/lib/db/schema';
+import { ledgerEntries, refuels, user, vehicles } from '@/lib/db/schema';
 import { logAudit } from './audit';
 import { addLedgerEntries } from './ledger';
-import { getVehicle } from './vehicles';
+import { billableMemberIds, getVehicle } from './vehicles';
+
+type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
+type Db = typeof db | Tx;
 
 export class RefuelServiceError extends Error {}
+
+/** I saldi in km di chi divide i costi, letti dentro la transazione in corso. */
+function saldiCorrenti(userIds: readonly string[], tx: Db): Map<string, number> {
+  const tutti = balances(
+    tx
+      .select()
+      .from(ledgerEntries)
+      .all()
+      .map((row) => ({
+        userId: row.userId,
+        amountKm: row.amountKm,
+        type: row.type,
+        occurredAt: row.occurredAt,
+      })),
+  );
+  return new Map(userIds.map((id) => [id, tutti.get(id) ?? 0]));
+}
 
 export interface RecordRefuelInput {
   vehicleId: string;
@@ -69,20 +89,34 @@ export function recordRefuel(input: RecordRefuelInput): { refuelId: string } {
     const kmPerLiter = vehicle.computedConsumptionKmL ?? vehicle.declaredConsumptionKmL;
     const km = kmBought(input.liters, kmPerLiter);
 
+    /*
+     * Se a pagare è qualcuno che non sta nei conti — papà, la nonna, un amico —
+     * l'autonomia non resta sul suo saldo: lui non guida abbastanza da consumarla e
+     * quei chilometri resterebbero fermi lì per sempre. Va dove serve: prima tappa i
+     * buchi di chi è indietro, poi l'avanzo si divide in parti uguali.
+     */
+    const pagante = tx.select().from(user).where(eq(user.id, input.userId)).get();
+    const membri = billableMemberIds(input.vehicleId);
+    const regalo = pagante && !pagante.billable && membri.length > 0;
+
+    const quote = regalo
+      ? distributeGuestKm(km, saldiCorrenti(membri, tx))
+      : new Map([[input.userId, km]]);
+
     addLedgerEntries(
-      [
-        {
-          userId: input.userId,
-          vehicleId: input.vehicleId,
-          type: 'refuel_credit',
-          amountKm: km,
-          amountCents: input.totalCents,
-          sourceType: 'refuel',
-          sourceId: refuelId,
-          occurredAt: refueledAt,
-          description: `${input.liters.toFixed(2)} l su ${vehicle.name}: ${km.toFixed(0)} km`,
-        },
-      ],
+      [...quote].map(([userId, quotaKm]) => ({
+        userId,
+        vehicleId: input.vehicleId,
+        type: 'refuel_credit' as const,
+        amountKm: quotaKm,
+        amountCents: userId === input.userId ? input.totalCents : 0,
+        sourceType: 'refuel' as const,
+        sourceId: refuelId,
+        occurredAt: refueledAt,
+        description: regalo
+          ? `${input.liters.toFixed(2)} l pagati da ${pagante?.name}: ${quotaKm.toFixed(0)} km`
+          : `${input.liters.toFixed(2)} l su ${vehicle.name}: ${quotaKm.toFixed(0)} km`,
+      })),
       tx,
     );
 
