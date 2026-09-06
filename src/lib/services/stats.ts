@@ -1,5 +1,5 @@
 import { and, eq, gte, lte } from 'drizzle-orm';
-import { fullTankSamples, TANK_FULL } from '@/lib/billing';
+import { tankToTankSamples } from '@/lib/billing';
 import { db } from '@/lib/db';
 import { refuels, trips, user, vehicles } from '@/lib/db/schema';
 
@@ -114,10 +114,14 @@ export interface ConsumptionPoint {
 }
 
 /**
- * Andamento del consumo reale nel tempo: ogni punto è un intervallo tra due pieni.
- * Serve a vedere se il mezzo sta peggiorando o se è solo cambiato il modo di guidare.
+ * Andamento del consumo reale nel tempo: ogni punto è l'intervallo tra due
+ * rifornimenti con la lancetta segnata. Serve a vedere se il mezzo sta peggiorando
+ * o se è solo cambiato il modo di guidare.
  */
 export function consumptionTrend(vehicleId: string): ConsumptionPoint[] {
+  const vehicle = db.select().from(vehicles).where(eq(vehicles.id, vehicleId)).get();
+  if (!vehicle) return [];
+
   const rows = db
     .select()
     .from(refuels)
@@ -132,14 +136,14 @@ export function consumptionTrend(vehicleId: string): ConsumptionPoint[] {
       refueledAt: row.refueledAt,
     }));
 
-  const fulls = rows
-    .filter((r) => r.tankFractionAfter === TANK_FULL)
+  const anchors = rows
+    .filter((r) => r.tankFractionAfter !== null)
     .sort((a, b) => a.odometerKm - b.odometerKm);
 
-  return fullTankSamples(rows).map((kmPerLiter, index) => ({
-    // Il campione i-esimo copre l'intervallo che finisce col pieno i+1.
-    odometerKm: fulls[index + 1].odometerKm,
-    refueledAt: fulls[index + 1].refueledAt,
+  return tankToTankSamples(rows, vehicle.tankCapacityL).map((kmPerLiter, index) => ({
+    // Il campione i-esimo copre l'intervallo che finisce col rifornimento i+1.
+    odometerKm: anchors[index + 1].odometerKm,
+    refueledAt: anchors[index + 1].refueledAt,
     kmPerLiter,
   }));
 }

@@ -127,7 +127,8 @@ export function TankGauge({
       </div>
 
       <p className="text-xs text-ink-dim">
-        Serve solo se hai fatto il pieno: è da pieno a pieno che si misura il consumo vero.
+        Non serve il pieno: da due letture della lancetta si ricava il consumo vero, e più
+        spesso la segni più i conti diventano precisi.
       </p>
     </fieldset>
   );

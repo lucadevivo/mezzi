@@ -3,8 +3,8 @@
 import { useActionState, useState } from 'react';
 import { recordRefuelAction, type ActionState } from '@/app/actions';
 import { TankGauge } from '@/components/tank-gauge';
-import { ErrorBanner, Field, NumberInput, PrimaryButton, TextInput } from '@/components/ui';
-import { formatKm } from '@/lib/format';
+import { ErrorBanner, Field, NumberInput, PrimaryButton } from '@/components/ui';
+import { formatLiters } from '@/lib/format';
 
 export interface PayerOption {
   id: string;
@@ -35,51 +35,48 @@ export function RefuelForm({
   const [tank, setTank] = useState<number | null>(null);
   // Controllati: un warning da confermare non deve cancellare quello che hai appena
   // battuto con una mano sola davanti alla pompa.
-  const [odometer, setOdometer] = useState(String(Math.round(currentOdometerKm)));
-  const [liters, setLiters] = useState('');
   const [pricePerLiter, setPricePerLiter] = useState('');
   const [total, setTotal] = useState('');
+
+  const parse = (value: string) => Number(value.replace(',', '.'));
+  const liters = parse(total) / parse(pricePerLiter);
+  const litersPreview = Number.isFinite(liters) && liters > 0 ? `${formatLiters(liters)}` : '—';
 
   return (
     <form action={formAction} className="space-y-4">
       <input type="hidden" name="vehicleId" value={vehicleId} />
 
-      <Field label="Contachilometri" hint={`Ultimo valore: ${formatKm(currentOdometerKm)}`}>
-        <NumberInput
-          name="odometerKm"
-          value={odometer}
-          onChange={(e) => setOdometer(e.target.value)}
-          required
-        />
-      </Field>
+      {/*
+        Il contachilometri non si chiede: alla pompa nessuno lo riguarda, e l'app ha
+        gia' l'ultimo valore. I litri nemmeno: si mettono soldi, non litri, e i litri
+        si calcolano dal prezzo esposto.
+      */}
+      <input type="hidden" name="odometerKm" value={Math.round(currentOdometerKm)} />
 
       <div className="grid grid-cols-2 gap-3">
-        <Field label="Litri">
+        <Field label="Quanto hai messo (€)">
           <NumberInput
-            name="liters"
-            placeholder="30"
-            value={liters}
-            onChange={(e) => setLiters(e.target.value)}
+            name="total"
+            placeholder="20,00"
+            inputMode="decimal"
+            value={total}
+            onChange={(e) => setTotal(e.target.value)}
+            required
           />
         </Field>
         <Field label="€ al litro">
           <NumberInput
             name="pricePerLiter"
-            placeholder="1,80"
+            placeholder="2,139"
             value={pricePerLiter}
             onChange={(e) => setPricePerLiter(e.target.value)}
+            required
           />
         </Field>
       </div>
-
-      <Field label="Totale pagato (€)" hint="Compilane due su tre: il terzo lo calcolo io.">
-        <NumberInput
-          name="total"
-          placeholder="54,00"
-          value={total}
-          onChange={(e) => setTotal(e.target.value)}
-        />
-      </Field>
+      <p className="-mt-2 text-xs text-ink-dim">
+        I litri li calcolo io: {litersPreview}
+      </p>
 
       <TankGauge name="tankFractionAfter" value={tank} onChange={setTank} />
 
@@ -96,10 +93,6 @@ export function RefuelForm({
             </option>
           ))}
         </select>
-      </Field>
-
-      <Field label="Distributore (facoltativo)">
-        <TextInput name="stationName" maxLength={100} />
       </Field>
 
       <ErrorBanner>{state.error}</ErrorBanner>

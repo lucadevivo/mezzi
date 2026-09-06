@@ -137,7 +137,11 @@ export function getVehicleState(vehicleId: string, asOf?: Date): VehicleState | 
   return {
     vehicle,
     openTrip: getOpenTrip(vehicleId),
-    consumption: resolveConsumption(refuelRows.map(toRefuelModel), vehicle.declaredConsumptionKmL),
+    consumption: resolveConsumption(
+      refuelRows.map(toRefuelModel),
+      vehicle.declaredConsumptionKmL,
+      vehicle.tankCapacityL,
+    ),
     price: referencePrice({
       events,
       tankCapacityL: vehicle.tankCapacityL,

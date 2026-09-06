@@ -1,11 +1,11 @@
 import { randomUUID } from 'node:crypto';
 import { desc, eq } from 'drizzle-orm';
-import { resolveConsumption, TANK_FULL } from '@/lib/billing';
+import { resolveConsumption } from '@/lib/billing';
 import { db } from '@/lib/db';
 import { refuels, vehicles } from '@/lib/db/schema';
 import { logAudit } from './audit';
 import { addLedgerEntries } from './ledger';
-import { reconcileAfterFullTank } from './reconciliation';
+import { reconcileAfterRefuel } from './reconciliation';
 import { getVehicle } from './vehicles';
 
 export class RefuelServiceError extends Error {}
@@ -97,7 +97,8 @@ export function recordRefuel(input: RecordRefuelInput): { refuelId: string } {
   recomputeConsumption(input.vehicleId);
   // Un pieno dice quanto carburante è stato davvero bruciato dal pieno precedente:
   // è il momento in cui la stima si può correggere con un dato vero.
-  if (input.tankFractionAfter === TANK_FULL) reconcileAfterFullTank(refuelId, refueledAt);
+  // Basta sapere dov'è la lancetta: non serve il pieno per sapere quanto si è bruciato.
+  if (input.tankFractionAfter !== null) reconcileAfterRefuel(refuelId, refueledAt);
 
   return { refuelId };
 }
@@ -121,6 +122,7 @@ export function recomputeConsumption(vehicleId: string): number | null {
       refueledAt: row.refueledAt,
     })),
     vehicle.declaredConsumptionKmL,
+    vehicle.tankCapacityL,
   );
 
   const value = consumption.source === 'measured' ? consumption.kmPerLiter : null;

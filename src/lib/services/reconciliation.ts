@@ -1,7 +1,7 @@
-import { and, desc, eq, gt, lte } from 'drizzle-orm';
-import { reconcileConsumption, TANK_FULL } from '@/lib/billing';
+import { and, desc, eq, gt, isNotNull, lte } from 'drizzle-orm';
+import { burnedBetween, reconcileConsumption } from '@/lib/billing';
 import { db } from '@/lib/db';
-import { refuels, trips } from '@/lib/db/schema';
+import { refuels, trips, vehicles } from '@/lib/db/schema';
 import { logAudit } from './audit';
 import { addLedgerEntries } from './ledger';
 
@@ -11,34 +11,39 @@ type Db = typeof db | Tx;
 export interface ReconciliationResult {
   applied: boolean;
   deltaLiters: number;
-  reason?: 'no_previous_full' | 'no_data' | 'implausible' | 'nothing_to_adjust';
+  reason?: 'no_previous_anchor' | 'no_data' | 'implausible' | 'nothing_to_adjust';
 }
 
 /**
- * Da lanciare dopo ogni rifornimento marcato "pieno".
+ * Da lanciare dopo ogni rifornimento di cui si conosce il livello raggiunto.
  *
- * Tra due pieni consecutivi i litri del secondo sono, per definizione, il carburante
- * bruciato in quel tratto. Confrontandoli con i litri stimati che abbiamo addebitato
- * si scopre di quanto la stima era sbagliata, e la differenza va a chi ha guidato:
- * è questo che tiene i saldi ancorati alla realtà invece di lasciarli scivolare.
+ * Non serve il pieno — che in questa famiglia non fa quasi mai nessuno: bastano due
+ * letture della lancetta. Quello che manca nel serbatoio è il carburante bruciato in
+ * quel tratto; confrontandolo con i litri stimati che abbiamo addebitato si scopre di
+ * quanto la stima era sbagliata, e la differenza va a chi ha guidato. È questo che
+ * tiene i saldi ancorati alla realtà invece di lasciarli scivolare.
  */
-export function reconcileAfterFullTank(
+export function reconcileAfterRefuel(
   refuelId: string,
   now = new Date(),
   tx: Db = db,
 ): ReconciliationResult {
   const current = tx.select().from(refuels).where(eq(refuels.id, refuelId)).get();
-  if (!current || current.tankFractionAfter !== TANK_FULL) {
-    return { applied: false, deltaLiters: 0, reason: 'no_previous_full' };
+  if (!current || current.tankFractionAfter === null) {
+    return { applied: false, deltaLiters: 0, reason: 'no_previous_anchor' };
   }
 
-  const previousFull = tx
+  const vehicle = tx.select().from(vehicles).where(eq(vehicles.id, current.vehicleId)).get();
+  if (!vehicle) return { applied: false, deltaLiters: 0, reason: 'no_data' };
+
+  // L'ancora precedente: l'ultimo rifornimento con la lancetta segnata, pieno o no.
+  const previous = tx
     .select()
     .from(refuels)
     .where(
       and(
         eq(refuels.vehicleId, current.vehicleId),
-        eq(refuels.tankFractionAfter, TANK_FULL),
+        isNotNull(refuels.tankFractionAfter),
         lte(refuels.odometerKm, current.odometerKm),
       ),
     )
@@ -47,7 +52,13 @@ export function reconcileAfterFullTank(
     .all()
     .find((row) => row.id !== current.id);
 
-  if (!previousFull) return { applied: false, deltaLiters: 0, reason: 'no_previous_full' };
+  if (!previous) return { applied: false, deltaLiters: 0, reason: 'no_previous_anchor' };
+
+  const actualLiters = burnedBetween(
+    { ...previous, tankFractionAfter: previous.tankFractionAfter },
+    { ...current, tankFractionAfter: current.tankFractionAfter },
+    vehicle.tankCapacityL,
+  );
 
   // Ogni attribuzione di km — corsa normale o corsa reclamata — è una riga in `trips`,
   // quindi qui c'è tutto il consumo del tratto, senza doppioni.
@@ -58,7 +69,7 @@ export function reconcileAfterFullTank(
       and(
         eq(trips.vehicleId, current.vehicleId),
         eq(trips.status, 'closed'),
-        gt(trips.odometerEndKm, previousFull.odometerKm),
+        gt(trips.odometerEndKm, previous.odometerKm),
         lte(trips.odometerEndKm, current.odometerKm),
       ),
     )
@@ -83,7 +94,7 @@ export function reconcileAfterFullTank(
 
   const { adjustments, deltaLiters, skipped } = reconcileConsumption({
     chargedLitersByUser,
-    actualLiters: current.liters,
+    actualLiters,
     unitPriceCents,
   });
 

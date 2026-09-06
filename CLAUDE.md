@@ -101,10 +101,11 @@ interessa la cifra. Se aggiungi qualcosa alla home, misura di nuovo.
 4. **Costi congelati alla riga.** Litri, prezzo unitario e costo si scrivono alla chiusura della corsa (o al rilevamento della discrepanza) e non si ricalcolano mai retroattivamente.
 5. **Il contachilometri è l'unica fonte di verità.** Somma dei km attribuiti + km non fatturabili = km reali del mezzo. C'è un test che lo verifica.
 6. **Due invarianti sotto test:** somma dei saldi = valore del carburante pagato e non ancora consumato, e somma dei km (punto 5).
-7. **Il livello del serbatoio è una frazione, non quattro caselle.** `tank_fraction_after` va da 0 a 1 e si segna trascinando la lancetta come sul cruscotto (`TankGauge`). È **facoltativo** e di suo resta `null`: obbligare a scegliere «pieno» quando la lancetta sta a metà falsifica la calibrazione del consumo, che è tutta costruita sui pieni veri. Solo `1` conta come pieno.
-8. **Ogni pieno riconcilia.** I litri del pieno sono il carburante davvero bruciato dal pieno precedente: la differenza rispetto ai litri stimati e già addebitati si redistribuisce con righe `adjustment`. Senza questo passaggio i saldi scivolano via e l'invariante 6 smette di valere.
-9. **Nessun segreto nel codice.** Tutto da `.env`, con `.env.example` versionato.
-10. **Niente over-engineering.** 3-5 utenti. Monolite leggibile, nessuna astrazione senza un secondo caso d'uso reale.
+7. **Il livello del serbatoio è una frazione, non quattro caselle.** `tank_fraction_after` va da 0 a 1 e si segna trascinando la lancetta come sul cruscotto (`TankGauge`). È **facoltativo** e di suo resta `null`: obbligare a scegliere un livello quando la lancetta sta in mezzo produce dati falsi, e i dati falsi qui diventano soldi.
+8. **Il consumo si misura serbatoio-a-serbatoio, non pieno-a-pieno.** In questa famiglia il pieno non lo fa quasi mai nessuno — venti euro alla volta — quindi aspettare due pieni vuol dire non misurare mai. Con due letture della lancetta il carburante bruciato è `capacità × (livello prima − livello dopo) + litri messi` (`burnedBetween`): con due pieni la formula si riduce ai litri del secondo, cioè al metodo classico. La lancetta si legge a occhio, quindi i campioni sono rumorosi: se ne tiene la mediana, si scartano gli outlier e sotto tre campioni si resta sul consumo da libretto.
+9. **Ogni rifornimento con la lancetta segnata riconcilia.** La differenza tra i litri davvero bruciati e i litri stimati già addebitati si redistribuisce con righe `adjustment`. Senza questo passaggio i saldi scivolano via e l'invariante 6 smette di valere.
+10. **Nessun segreto nel codice.** Tutto da `.env`, con `.env.example` versionato.
+11. **Niente over-engineering.** 3-5 utenti. Monolite leggibile, nessuna astrazione senza un secondo caso d'uso reale.
 
 ## Convenzioni
 

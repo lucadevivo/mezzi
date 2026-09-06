@@ -180,7 +180,9 @@ const refuelSchema = z.object({
   vehicleId: z.string().min(1),
   payerId: z.string().min(1),
   odometerKm: decimal,
-  liters: optionalDecimal,
+  // I litri non li digita piu' nessuno: restano accettati per la coda offline e per
+  // chi arriva dall'API, ma il campo puo' proprio non esserci.
+  liters: optionalDecimal.optional(),
   pricePerLiter: optionalDecimal,
   total: optionalDecimal,
   tankFractionAfter: z
@@ -205,7 +207,7 @@ export async function recordRefuelAction(
 
   try {
     const amounts = completeRefuelAmounts({
-      liters,
+      liters: liters ?? null,
       pricePerLiterCents: pricePerLiter === null ? null : Math.round(pricePerLiter * 100),
       totalCents: total === null ? null : Math.round(total * 100),
     });

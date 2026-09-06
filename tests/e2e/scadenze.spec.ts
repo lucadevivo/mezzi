@@ -21,8 +21,8 @@ test('il tagliando scade a chilometri, non a calendario', async ({ page }) => {
 
   await page.getByLabel('Mezzo').selectOption({ label: 'Ford Fiesta' });
   await page.getByLabel('Cosa scade').selectOption('tagliando');
-  // La Fiesta è a 100.100 km dopo la corsa del primo test: 200 km e ci siamo.
-  await page.getByLabel('Oppure ai chilometri').fill('100300');
+  // La Fiesta è a 100 km dopo la corsa del primo test: 200 km e ci siamo.
+  await page.getByLabel('Oppure ai chilometri').fill('300');
   await page.getByRole('button', { name: 'Aggiungi la scadenza' }).click();
 
   await expect(page.getByText('mancano 200 km')).toBeVisible();

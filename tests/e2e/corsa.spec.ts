@@ -13,35 +13,33 @@ test('rifornimento e corsa completa: i numeri tornano', async ({ page }) => {
   // della pagina precedente, che ha un'etichetta molto simile.
   await expect(page.getByRole('heading', { name: /^Rifornimento/ })).toBeVisible();
 
-  await page.getByLabel('Contachilometri', { exact: true }).fill('100000');
-  await page.getByLabel('Litri').fill('40');
+  // Niente contachilometri e niente litri: si dice quanto si e' speso e a quanto stava.
+  await page.getByLabel('Quanto hai messo (€)').fill('72,00');
   await page.getByLabel('€ al litro').fill('1,80');
   // La lancetta si trascina: qui la si porta al fondo scala, cioe' al pieno.
   await page.getByLabel('Livello del serbatoio dopo il rifornimento').fill('1');
   await page.getByRole('button', { name: 'Registra il rifornimento' }).click();
 
-  await expect(page.getByText('100.000 km', { exact: true })).toBeVisible();
-
-  // Chi ha pagato il pieno è in credito di 72 euro.
+  // Chi ha pagato il pieno è in credito di 72 euro: 72 € a 1,80 fanno 40 litri.
   await page.goto('/saldi');
   await expect(page.getByText('72,00 €').first()).toBeVisible();
 
   // Poi la corsa: 100 km a 16 km/l fanno 6,25 litri, cioè 11,25 euro.
   await page.goto('/mezzi/v-fiesta');
-  await enterOdometer(page, 'Contachilometri adesso', '100000');
+  await enterOdometer(page, 'Contachilometri adesso', '0');
   await page.getByRole('button', { name: 'Avanti' }).click();
   await page.getByRole('button', { name: 'Avvia la corsa' }).click();
 
   await expect(page.getByText('Corsa in corso')).toBeVisible();
 
-  await enterOdometer(page, 'Contachilometri di arrivo', '100100');
+  await enterOdometer(page, 'Contachilometri di arrivo', '100');
   await page.getByRole('button', { name: 'Chiudi la corsa' }).click();
 
   // 100 km in pochi secondi: il controllo di plausibilità chiede conferma, come deve.
   await expect(page.getByText(/200 km\/h/)).toBeVisible();
   await page.getByRole('button', { name: 'Confermo, chiudi la corsa' }).click();
 
-  await expect(page.getByText('100.100 km', { exact: true })).toBeVisible();
+  await expect(page.getByText('100 km', { exact: true })).toBeVisible();
 
   await page.goto('/saldi');
   await expect(page.getByText('60,75 €').first()).toBeVisible();
