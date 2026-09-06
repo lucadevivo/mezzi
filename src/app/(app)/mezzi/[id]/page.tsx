@@ -8,7 +8,7 @@ import { requireUser } from '@/lib/auth/session';
 import { db } from '@/lib/db';
 import { user as userTable } from '@/lib/db/schema';
 import { formatEuro, formatKm, formatLiters, formatSince } from '@/lib/format';
-import { getVehicleState } from '@/lib/services/vehicles';
+import { billableMemberIds, getVehicleState } from '@/lib/services/vehicles';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,12 +23,16 @@ export default async function VehiclePage({ params }: { params: Promise<{ id: st
     ? db.select().from(userTable).where(eq(userTable.id, openTrip.userId)).get()
     : undefined;
 
+  // Solo chi entra davvero nella divisione: i membri fatturabili di questo mezzo.
+  // La nonna guida e viaggia, ma la sua parte se la dividono i fratelli, quindi
+  // metterla tra i passeggeri servirebbe solo a sbagliare il conto.
+  const billable = new Set(billableMemberIds(vehicle.id));
   const passengers = db
     .select()
     .from(userTable)
     .where(eq(userTable.active, true))
     .all()
-    .filter((u) => u.id !== me.id)
+    .filter((u) => u.id !== me.id && billable.has(u.id))
     .map((u) => ({ id: u.id, name: u.name, billable: u.billable }));
 
   return (
