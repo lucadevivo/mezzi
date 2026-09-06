@@ -37,6 +37,17 @@ const nextConfig: NextConfig = {
   output: 'standalone',
   // Modulo nativo: va caricato da Node, non impacchettato dal bundler.
   serverExternalPackages: ['better-sqlite3'],
+  experimental: {
+    /*
+     * Le pagine sono tutte dinamiche, e di suo Next non tiene in cache niente di
+     * dinamico (`dynamic: 0`): tornare su una sezione appena vista rifaceva il giro
+     * completo fino al server di casa, che dal telefono sono qualche centinaio di
+     * millisecondi. Venti secondi di cache rendono immediato l'avanti-e-indietro tra
+     * le schede; una modifica fatta dall'app invalida comunque subito, perché le
+     * azioni chiamano `revalidatePath`.
+     */
+    staleTimes: { dynamic: 20 },
+  },
   async headers() {
     return [{ source: '/:path*', headers: securityHeaders }];
   },
