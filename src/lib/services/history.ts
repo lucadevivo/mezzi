@@ -7,6 +7,7 @@ import { reverseLedgerEntries } from './ledger';
 export class HistoryError extends Error {}
 
 export interface HistoryFilters {
+  categoryId?: string;
   vehicleId?: string;
   userId?: string;
   from?: Date;
@@ -18,6 +19,7 @@ export function listTrips(filters: HistoryFilters = {}) {
   const where: SQL[] = [eq(trips.status, 'closed')];
   if (filters.vehicleId) where.push(eq(trips.vehicleId, filters.vehicleId));
   if (filters.userId) where.push(eq(trips.userId, filters.userId));
+  if (filters.categoryId) where.push(eq(trips.categoryId, filters.categoryId));
   if (filters.from) where.push(gte(trips.endedAt, filters.from));
   if (filters.to) where.push(lte(trips.endedAt, filters.to));
 

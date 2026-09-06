@@ -154,6 +154,21 @@ export const vehicleMembers = sqliteTable(
 /* Corse                                                                       */
 /* -------------------------------------------------------------------------- */
 
+/**
+ * Le etichette con cui si dice a cosa serviva una corsa: «consegne», «palestra».
+ * Le crea chi guida, al volo, chiudendo la corsa — non c'è una schermata di gestione:
+ * con quattro persone e una manciata di etichette sarebbe una cerimonia inutile.
+ */
+export const tripCategories = sqliteTable('trip_categories', {
+  id: text('id').primaryKey(),
+  /** Minuscolo e senza spazi ai lati: serve a non ritrovarsi «Palestra» e «palestra». */
+  name: text('name').notNull().unique(),
+  createdByUserId: text('created_by_user_id')
+    .notNull()
+    .references(() => user.id),
+  createdAt: createdAt(),
+});
+
 export const trips = sqliteTable(
   'trips',
   {
@@ -173,6 +188,8 @@ export const trips = sqliteTable(
       .default('open')
       .notNull(),
     note: text('note'),
+    /** Facoltativa: a cosa serviva il tragitto («consegne», «palestra»). */
+    categoryId: text('category_id').references(() => tripCategories.id),
     /* Valori congelati alla chiusura: lo storico non cambia mai retroattivamente. */
     costCents: integer('cost_cents'),
     litersEstimated: real('liters_estimated'),

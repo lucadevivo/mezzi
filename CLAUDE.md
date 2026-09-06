@@ -119,6 +119,15 @@ queste due schermate, **rimisura** — a 620 non c'è un pixel di margine.
 10. **Nessun segreto nel codice.** Tutto da `.env`, con `.env.example` versionato.
 11. **Niente over-engineering.** 3-5 utenti. Monolite leggibile, nessuna astrazione senza un secondo caso d'uso reale.
 
+## Categorie dei tragitti
+
+Etichette libere («consegne», «palestra») che si scrivono **chiudendo la corsa**, in un campo con la
+tendina dei suggerimenti: si sceglie una già usata o se ne scrive una nuova, che nasce da sé
+(`resolveCategory`). Sono minuscole e normalizzate, così «Palestra» e «palestra» restano la stessa
+cosa. Non c'è una schermata per gestirle, ed è voluto: con quattro persone e cinque etichette
+sarebbe una cerimonia. Nello storico compaiono come pastiglia sulla riga e c'è la tendina per
+filtrare, che appare solo quando almeno un'etichetta esiste.
+
 ## Convenzioni
 
 - Codice e DB in **inglese**, UI in **italiano** (tono diretto: "Metti 25 € al prossimo pieno").

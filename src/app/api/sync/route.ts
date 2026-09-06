@@ -31,6 +31,7 @@ const closePayload = z.object({
   odometerEndKm: z.number().finite(),
   passengerIds: z.array(z.string()).optional(),
   note: z.string().max(500).optional(),
+  category: z.string().max(30).optional(),
 });
 
 const refuelPayload = z.object({

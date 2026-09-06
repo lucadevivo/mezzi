@@ -6,12 +6,13 @@ import { requireUser } from '@/lib/auth/session';
 import { db } from '@/lib/db';
 import { user as userTable } from '@/lib/db/schema';
 import { formatDateTime, formatEuro, formatKm, formatLiters, formatTank } from '@/lib/format';
+import { listCategories } from '@/lib/services/categories';
 import { listAllRefuels, listTrips } from '@/lib/services/history';
 import { listVehicles } from '@/lib/services/vehicles';
 
 export const dynamic = 'force-dynamic';
 
-type Search = { mezzo?: string; utente?: string; tipo?: string };
+type Search = { mezzo?: string; utente?: string; tipo?: string; categoria?: string };
 
 const PRICE_SOURCE = {
   tank_weighted: 'prezzo medio in serbatoio',
@@ -31,7 +32,13 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
 
   const showRefuels = filters.tipo !== 'corse';
   const showTrips = filters.tipo !== 'rifornimenti';
-  const query = { vehicleId: filters.mezzo, userId: filters.utente };
+  const categories = listCategories();
+  const categoryOf = (id: string | null) => categories.find((c) => c.id === id)?.name;
+  const query = {
+    vehicleId: filters.mezzo,
+    userId: filters.utente,
+    categoryId: filters.categoria,
+  };
 
   const trips = showTrips ? listTrips(query) : [];
   const refuels = showRefuels ? listAllRefuels(query) : [];
@@ -48,6 +55,7 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
       <HistoryFilters
         vehicles={vehicles.map((v) => ({ id: v.id, name: v.name }))}
         people={people.map((p) => ({ id: p.id, name: p.name }))}
+        categories={categories.map((c) => ({ id: c.id, name: c.name }))}
         filters={filters}
       />
 
@@ -62,6 +70,11 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
               <div className="flex items-baseline justify-between gap-3">
                 <span className="font-medium">
                   {nameOf(row.userId)} · {formatKm(row.distanceKm ?? 0)}
+                  {categoryOf(row.categoryId) ? (
+                    <span className="ml-2 rounded-full bg-surface-2 px-2 py-0.5 text-xs text-ink-dim">
+                      {categoryOf(row.categoryId)}
+                    </span>
+                  ) : null}
                 </span>
                 <span className="tabular text-lg">{formatEuro(row.costCents ?? 0)}</span>
               </div>

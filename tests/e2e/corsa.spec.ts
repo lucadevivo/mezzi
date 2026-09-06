@@ -79,3 +79,22 @@ test('un contachilometri con i decimali non blocca la corsa successiva', async (
   await page.getByRole('button', { name: 'Avanti' }).click();
   await expect(page.getByRole('button', { name: 'Avvia la corsa' })).toBeVisible();
 });
+
+/** Le categorie non hanno una schermata di gestione: nascono chiudendo una corsa. */
+test('una corsa si può etichettare, e l’etichetta nasce da sé', async ({ page }) => {
+  await page.goto('/mezzi/v-500');
+  await enterOdometer(page, 'Contachilometri adesso', '0');
+  await page.getByRole('button', { name: 'Avanti' }).click();
+  await page.getByRole('button', { name: 'Avvia la corsa' }).click();
+
+  await page.getByLabel('A cosa serviva (facoltativo)').fill('consegne');
+  await closeTrip(page, '30');
+
+  await page.goto('/storico');
+  // La pastiglia sulla riga, non l'opzione nella tendina: quella e' nascosta.
+  await expect(page.locator('span.rounded-full', { hasText: 'consegne' })).toBeVisible();
+
+  // E ora si può filtrare: l'etichetta esiste perché qualcuno l'ha scritta.
+  await page.getByLabel('Filtra per categoria').selectOption({ label: 'consegne' });
+  await expect(page.getByText('30 km')).toBeVisible();
+});

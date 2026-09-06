@@ -6,6 +6,7 @@ export interface HistoryFilterValues {
   mezzo?: string;
   utente?: string;
   tipo?: string;
+  categoria?: string;
 }
 
 interface Option {
@@ -27,10 +28,12 @@ interface Option {
 export function HistoryFilters({
   vehicles,
   people,
+  categories,
   filters,
 }: {
   vehicles: readonly Option[];
   people: readonly Option[];
+  categories: readonly Option[];
   filters: HistoryFilterValues;
 }) {
   const router = useRouter();
@@ -83,6 +86,24 @@ export function HistoryFilters({
           ))}
         </select>
       </div>
+
+      {/* La tendina delle etichette compare solo quando ce n'è almeno una: prima
+          sarebbe un filtro su niente. */}
+      {categories.length > 0 ? (
+        <select
+          aria-label="Filtra per categoria"
+          className={select}
+          value={filters.categoria ?? ''}
+          onChange={(e) => go({ categoria: e.target.value || undefined })}
+        >
+          <option value="">Tutte le categorie</option>
+          {categories.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.name}
+            </option>
+          ))}
+        </select>
+      ) : null}
 
       <div className="grid grid-cols-3 gap-1 rounded-2xl border border-line bg-surface-2 p-1">
         {TIPI.map((tipo) => {

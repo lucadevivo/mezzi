@@ -14,6 +14,7 @@ import { getEnv } from '@/lib/env';
 import { logAudit } from './audit';
 import { addLedgerEntries } from './ledger';
 import { createUnclaimedTrip, type UnclaimedAnswer } from './unclaimed';
+import { resolveCategory } from './categories';
 import { getOpenTrip, getVehicleState } from './vehicles';
 
 export class TripServiceError extends Error {}
@@ -134,6 +135,8 @@ export interface CloseTripInput {
   odometerEndKm: number;
   passengerIds?: readonly string[];
   note?: string;
+  /** A cosa serviva il tragitto. Se l'etichetta non esiste ancora, viene creata. */
+  category?: string;
   /** L'utente ha già confermato i warning di plausibilità. */
   confirmWarnings?: boolean;
   now?: Date;
@@ -181,6 +184,10 @@ export function closeTrip(input: CloseTripInput): CloseTripResult {
   const shares = splitTripKm(distanceKm, trip.userId, passengerIds);
 
   db.transaction((tx) => {
+    const categoryId = input.category?.trim()
+      ? resolveCategory(input.category, trip.userId, tx)
+      : trip.categoryId;
+
     tx.update(trips)
       .set({
         odometerEndKm: input.odometerEndKm,
@@ -188,6 +195,7 @@ export function closeTrip(input: CloseTripInput): CloseTripResult {
         endedAt: now,
         status: 'closed',
         note: input.note ?? trip.note,
+        categoryId,
         costCents,
         litersEstimated,
         unitPriceUsedCents: state.price.pricePerLiterCents,

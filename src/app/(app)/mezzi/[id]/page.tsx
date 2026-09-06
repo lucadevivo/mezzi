@@ -8,6 +8,7 @@ import { requireUser } from '@/lib/auth/session';
 import { db } from '@/lib/db';
 import { user as userTable } from '@/lib/db/schema';
 import { formatEuro, formatKm, formatLiters, formatSince } from '@/lib/format';
+import { listCategories } from '@/lib/services/categories';
 import { billableMemberIds, getVehicleState } from '@/lib/services/vehicles';
 
 export const dynamic = 'force-dynamic';
@@ -108,6 +109,7 @@ export default async function VehiclePage({ params }: { params: Promise<{ id: st
                 : null
             }
             passengers={passengers}
+            categories={listCategories().map((c) => c.name)}
           />
         </section>
       )}

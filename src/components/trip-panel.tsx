@@ -35,11 +35,14 @@ export function TripPanel({
   currentOdometerKm,
   serverTrip,
   passengers,
+  categories,
 }: {
   vehicleId: string;
   currentOdometerKm: number;
   serverTrip: { id: string; odometerStartKm: number; startedAt: string } | null;
   passengers: PassengerOption[];
+  /** Le etichette già usate: si scelgono da qui o se ne scrive una nuova. */
+  categories: string[];
 }) {
   const pending = usePendingTrip(vehicleId);
 
@@ -54,7 +57,15 @@ export function TripPanel({
         }
       : null;
 
-  if (trip) return <CloseTrip trip={trip} vehicleId={vehicleId} passengers={passengers} />;
+  if (trip)
+    return (
+      <CloseTrip
+        trip={trip}
+        vehicleId={vehicleId}
+        passengers={passengers}
+        categories={categories}
+      />
+    );
 
   return <StartTrip vehicleId={vehicleId} currentOdometerKm={currentOdometerKm} />;
 }
@@ -191,10 +202,12 @@ function CloseTrip({
   trip,
   vehicleId,
   passengers,
+  categories,
 }: {
   trip: OpenTrip;
   vehicleId: string;
   passengers: PassengerOption[];
+  categories: string[];
 }) {
   const router = useRouter();
   const [state, formAction, submitting] = useActionState<ActionState, FormData>(
@@ -205,6 +218,7 @@ function CloseTrip({
   const [showPassengers, setShowPassengers] = useState(false);
   const [selected, setSelected] = useState<string[]>([]);
   const [note, setNote] = useState('');
+  const [categoria, setCategoria] = useState('');
   const [offlineError, setOfflineError] = useState<string | null>(null);
 
   const closeOffline = () => {
@@ -220,6 +234,7 @@ function CloseTrip({
       odometerEndKm: km,
       passengerIds: selected,
       note,
+      category: categoria,
     }).then(() => {
       // `clearPendingTrip` avvisa da solo e il pannello torna all'avvio corsa.
       clearPendingTrip();
@@ -278,6 +293,27 @@ function CloseTrip({
           ))}
         </fieldset>
       ) : null}
+
+      {/*
+        Un campo solo con la tendina dei suggerimenti: si sceglie un'etichetta già usata
+        o se ne scrive una nuova, che nasce da sé. Una schermata per gestire le categorie,
+        con quattro persone e cinque etichette, sarebbe una cerimonia inutile.
+      */}
+      <Field label="A cosa serviva (facoltativo)" hint="Es. consegne, palestra, spesa">
+        <TextInput
+          name="categoria"
+          list="categorie-note"
+          maxLength={30}
+          value={categoria}
+          onChange={(e) => setCategoria(e.target.value)}
+          placeholder="consegne"
+        />
+        <datalist id="categorie-note">
+          {categories.map((c) => (
+            <option key={c} value={c} />
+          ))}
+        </datalist>
+      </Field>
 
       <Field label="Nota (facoltativa)">
         <TextInput

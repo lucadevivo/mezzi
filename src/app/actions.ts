@@ -129,6 +129,7 @@ const closeTripSchema = z.object({
   odometerEndKm: decimal,
   passengerIds: z.array(z.string()).optional(),
   note: z.string().trim().max(500).optional(),
+  categoria: z.string().trim().max(30).optional(),
   conferma: z.string().optional(),
 });
 
@@ -149,6 +150,7 @@ export async function closeTripAction(
       odometerEndKm: parsed.data.odometerEndKm,
       passengerIds: parsed.data.passengerIds,
       note: parsed.data.note,
+      category: parsed.data.categoria,
       confirmWarnings: parsed.data.conferma === 'si',
     });
   } catch (error) {

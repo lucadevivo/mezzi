@@ -29,6 +29,13 @@
       "when": 1788714517342,
       "tag": "0003_saldo_in_chilometri",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1788722381946,
+      "tag": "0004_categorie_tragitto",
+      "breakpoints": true
     }
   ]
 }
