@@ -57,7 +57,7 @@ function toRefuelModel(row: typeof refuels.$inferSelect): Refuel {
  * Ricostruisce cosa è successo al serbatoio: ogni rifornimento lo riempie,
  * ogni corsa chiusa (o corsa non registrata già valorizzata) lo svuota.
  */
-function tankEvents(vehicleId: string): TankEvent[] {
+function tankEvents(vehicleId: string, asOf?: Date): TankEvent[] {
   const refuelRows = db.select().from(refuels).where(eq(refuels.vehicleId, vehicleId)).all();
   const tripRows = db
     .select()
@@ -89,7 +89,9 @@ function tankEvents(vehicleId: string): TankEvent[] {
     events.push({ kind: 'consumption', at: row.detectedAt, liters: row.litersEstimated });
   }
 
-  return events;
+  // Una corsa registrata a posteriori va valutata col serbatoio di allora, non con
+  // quello di adesso: i rifornimenti fatti dopo non erano ancora nel serbatoio.
+  return asOf ? events.filter((e) => e.at <= asOf) : events;
 }
 
 export interface VehicleState {
@@ -102,12 +104,20 @@ export interface VehicleState {
   lastEventAt: Date;
 }
 
-export function getVehicleState(vehicleId: string): VehicleState | null {
+/**
+ * Stato del mezzo a un dato istante. `asOf` serve alle corse registrate a posteriori:
+ * senza, una corsa di agosto verrebbe addebitata al prezzo del pieno di settembre.
+ */
+export function getVehicleState(vehicleId: string, asOf?: Date): VehicleState | null {
   const vehicle = getVehicle(vehicleId);
   if (!vehicle) return null;
 
   const refuelRows = db.select().from(refuels).where(eq(refuels.vehicleId, vehicleId)).all();
-  const events = tankEvents(vehicleId);
+  const events = tankEvents(vehicleId, asOf);
+  const firstRefuel = refuelRows.reduce<(typeof refuelRows)[number] | null>(
+    (first, row) => (!first || row.refueledAt < first.refueledAt ? row : first),
+    null,
+  );
 
   const lastTrip = db
     .select({ at: trips.startedAt })
@@ -131,6 +141,7 @@ export function getVehicleState(vehicleId: string): VehicleState | null {
     price: referencePrice({
       events,
       tankCapacityL: vehicle.tankCapacityL,
+      firstRefuelPriceCents: firstRefuel?.pricePerLiterCents ?? null,
       fallbackPricePerLiterCents: getEnv().FALLBACK_FUEL_PRICE_CENTS,
     }),
     litersInTank: tankState(events, vehicle.tankCapacityL).litersInTank,

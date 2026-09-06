@@ -13,6 +13,7 @@ type Kind = (typeof KINDS)[number];
 const PRICE_SOURCE = {
   tank_weighted: 'medio in serbatoio',
   last_refuel: 'ultimo pieno',
+  first_refuel: 'primo pieno noto',
   fallback: 'di ripiego',
 } as const;
 

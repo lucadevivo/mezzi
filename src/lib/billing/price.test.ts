@@ -87,3 +87,46 @@ describe('referencePrice', () => {
     expect(result).toEqual({ pricePerLiterCents: 175, source: 'fallback' });
   });
 });
+
+describe('referencePrice — corse che precedono ogni rifornimento', () => {
+  const refuel = {
+    liters: 10,
+    pricePerLiterCents: 210,
+    totalCents: 2100,
+    tankLevelAfter: null,
+  } as const;
+
+  it('usa il primo rifornimento noto invece del valore di ripiego', () => {
+    const result = referencePrice({
+      events: [],
+      tankCapacityL: 45,
+      firstRefuelPriceCents: 210,
+      fallbackPricePerLiterCents: 180,
+    });
+
+    expect(result).toEqual({ pricePerLiterCents: 210, source: 'first_refuel' });
+  });
+
+  it('ripiega sulla costante solo se il mezzo non ha mai visto un rifornimento', () => {
+    const result = referencePrice({
+      events: [],
+      tankCapacityL: 45,
+      firstRefuelPriceCents: null,
+      fallbackPricePerLiterCents: 180,
+    });
+
+    expect(result).toEqual({ pricePerLiterCents: 180, source: 'fallback' });
+  });
+
+  it('il serbatoio, quando c’è, batte il primo rifornimento noto', () => {
+    const result = referencePrice({
+      events: [{ kind: 'refuel', at: new Date('2026-08-01T10:00:00Z'), refuel }],
+      tankCapacityL: 45,
+      firstRefuelPriceCents: 999,
+      fallbackPricePerLiterCents: 180,
+    });
+
+    expect(result.source).toBe('tank_weighted');
+    expect(result.pricePerLiterCents).toBe(210);
+  });
+});

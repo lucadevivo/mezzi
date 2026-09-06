@@ -20,7 +20,7 @@ export class TripServiceError extends Error {}
 
 /** Anteprima per la UI: cosa succede se confermo questo contachilometri? */
 export function checkOdometer(vehicleId: string, odometerKm: number, now = new Date()) {
-  const state = getVehicleState(vehicleId);
+  const state = getVehicleState(vehicleId, now);
   if (!state) throw new TripServiceError('Mezzo inesistente');
 
   const env = getEnv();
@@ -152,7 +152,8 @@ export function closeTrip(input: CloseTripInput): CloseTripResult {
   if (!trip) throw new TripServiceError('Corsa inesistente');
   if (trip.status === 'closed') throw new TripServiceError('Corsa già chiusa');
 
-  const state = getVehicleState(trip.vehicleId);
+  // Il prezzo lo decide il serbatoio al momento della corsa, non quello di adesso.
+  const state = getVehicleState(trip.vehicleId, now);
   if (!state) throw new TripServiceError('Mezzo inesistente');
 
   const warnings = validateTrip({

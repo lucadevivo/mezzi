@@ -16,6 +16,7 @@ type Search = { mezzo?: string; utente?: string; tipo?: string };
 const PRICE_SOURCE = {
   tank_weighted: 'prezzo medio in serbatoio',
   last_refuel: 'prezzo ultimo pieno',
+  first_refuel: 'prezzo primo pieno noto',
   fallback: 'prezzo di ripiego',
 } as const;
 

@@ -54,6 +54,13 @@ export function tankState(
 export interface ReferencePriceInput {
   events: readonly TankEvent[];
   tankCapacityL: number;
+  /**
+   * Prezzo del primo rifornimento mai registrato sul mezzo, anche se successivo alla
+   * corsa che si sta valutando. Serve alle corse che stanno prima di ogni rifornimento:
+   * quel gasolio qualcuno l'ha comprato, e il prezzo vicino nel tempo lo stima molto
+   * meglio di una costante di configurazione che invecchia.
+   */
+  firstRefuelPriceCents?: Cents | null;
   /** Prezzo di ripiego configurabile (o media regionale, quando ci sarà). */
   fallbackPricePerLiterCents: Cents;
 }
@@ -62,10 +69,11 @@ export interface ReferencePriceInput {
  * Prezzo al litro da usare per addebitare una corsa, nell'ordine della spec:
  * 1. media ponderata del carburante effettivamente in serbatoio,
  * 2. prezzo dell'ultimo rifornimento del mezzo,
- * 3. valore di ripiego.
+ * 3. prezzo del primo rifornimento noto, per le corse che vengono prima di tutti,
+ * 4. valore di ripiego.
  */
 export function referencePrice(input: ReferencePriceInput): ReferencePrice {
-  const { events, tankCapacityL, fallbackPricePerLiterCents } = input;
+  const { events, tankCapacityL, firstRefuelPriceCents, fallbackPricePerLiterCents } = input;
 
   const state = tankState(events, tankCapacityL);
   if (state.litersInTank > 0 && state.avgPriceCents > 0) {
@@ -79,6 +87,10 @@ export function referencePrice(input: ReferencePriceInput): ReferencePrice {
   const last = refuels.at(-1);
   if (last) {
     return { pricePerLiterCents: last.refuel.pricePerLiterCents, source: 'last_refuel' };
+  }
+
+  if (firstRefuelPriceCents && firstRefuelPriceCents > 0) {
+    return { pricePerLiterCents: firstRefuelPriceCents, source: 'first_refuel' };
   }
 
   return { pricePerLiterCents: fallbackPricePerLiterCents, source: 'fallback' };

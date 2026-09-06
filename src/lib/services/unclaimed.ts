@@ -38,7 +38,7 @@ export interface CreateUnclaimedInput {
  * se domani cambia il prezzo del carburante, questa corsa vale sempre uguale.
  */
 export function createUnclaimedTrip(input: CreateUnclaimedInput, tx: Db = db): string {
-  const state = getVehicleState(input.vehicleId);
+  const state = getVehicleState(input.vehicleId, input.detectedAt);
   if (!state) throw new UnclaimedError('Mezzo inesistente');
 
   const { litersEstimated, costCents } = tripCost({

@@ -177,7 +177,7 @@ export const trips = sqliteTable(
     costCents: integer('cost_cents'),
     litersEstimated: real('liters_estimated'),
     unitPriceUsedCents: integer('unit_price_used_cents'),
-    priceSource: text('price_source', { enum: ['tank_weighted', 'last_refuel', 'fallback'] }),
+    priceSource: text('price_source', { enum: ['tank_weighted', 'last_refuel', 'first_refuel', 'fallback'] }),
     consumptionKmLUsed: real('consumption_km_l_used'),
     consumptionSource: text('consumption_source', { enum: ['measured', 'declared'] }),
     /** Corsa nata dal reclamo di una `unclaimed_trip`. */

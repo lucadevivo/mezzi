@@ -45,7 +45,7 @@ export interface LedgerEntry {
 }
 
 /** Da dove viene il prezzo al litro usato per addebitare una corsa. */
-export type PriceSource = 'tank_weighted' | 'last_refuel' | 'fallback';
+export type PriceSource = 'tank_weighted' | 'last_refuel' | 'first_refuel' | 'fallback';
 
 export interface ReferencePrice {
   pricePerLiterCents: Cents;
