@@ -110,7 +110,7 @@ export default async function VehiclePage({ params }: { params: Promise<{ id: st
 
       <Link
         href={`/mezzi/${vehicle.id}/rifornimento`}
-        className="flex min-h-12 w-full items-center justify-center rounded-2xl glass-2 text-base font-medium"
+        className="flex min-h-12 w-full items-center justify-center rounded-2xl glass-2 text-base font-medium text-ink"
       >
         Ho fatto rifornimento
       </Link>

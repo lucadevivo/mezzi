@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Card, EmptyState, SaldoGauge } from '@/components/ui';
+import { Card, EmptyState } from '@/components/ui';
 import { requireUser } from '@/lib/auth/session';
 import { formatEuro, formatKm, formatSince } from '@/lib/format';
 import { getBalance, getRefuelSuggestion } from '@/lib/services/balances';
@@ -27,39 +27,38 @@ export default async function HomePage() {
   const myOpen = cards.find((c) => c.openTrip?.userId === me.id);
 
   return (
-    <div className={`space-y-6 ${myOpen ? 'pb-20' : ''}`}>
-      <Card className="px-4 py-5 text-center">
+    <div className={`space-y-4 ${myOpen ? 'pb-20' : ''}`}>
+      {/* Il quadrante è sparito: di un saldo interessa la cifra, e la cifra da
+          sola lascia entrare i mezzi nella prima schermata senza scorrere. */}
+      <Card className="px-4 py-4">
         <p className="text-sm text-ink-dim">Il tuo saldo</p>
-        <div className="mt-2 flex justify-center">
-          <SaldoGauge balanceCents={balanceCents} />
-        </div>
         <p
-          className={`tabular -mt-4 text-4xl font-semibold ${
+          className={`tabular mt-0.5 text-[40px] font-semibold leading-none ${
             balanceCents < 0 ? 'text-debt' : 'text-credit'
           }`}
         >
           {formatEuro(balanceCents)}
         </p>
-        <p className="mt-2 text-base text-ink-dim">{suggestion.message}</p>
+        <p className="mt-2 text-sm text-ink-dim">{suggestion.message}</p>
       </Card>
 
-      <section className="space-y-3">
+      <section className="space-y-2">
         <h2 className="px-1 text-[15px] font-semibold text-ink-dim">I mezzi</h2>
         {cards.length === 0 ? (
           <EmptyState title="Nessun mezzo" hint="Chiedi all'admin di aggiungerne uno." />
         ) : null}
         {cards.map(({ vehicle, openTrip, driver }) => (
           <Link key={vehicle.id} href={`/mezzi/${vehicle.id}`} className="block">
-            <Card accent={vehicle.color} className="px-4 py-4">
+            <Card accent={vehicle.color} className="px-4 py-3">
               <div className="flex items-baseline justify-between gap-3">
                 <span className="text-lg font-semibold">{vehicle.name}</span>
-                <span className={`text-sm ${openTrip ? 'text-amber' : 'text-ink-dim'}`}>
+                <span className={`text-sm ${openTrip ? 'text-accent' : 'text-ink-dim'}`}>
                   {openTrip
                     ? `in uso da ${driver?.name ?? '?'} · ${formatSince(openTrip.startedAt)}`
                     : 'libero'}
                 </span>
               </div>
-              <p className="tabular mt-1 text-2xl text-ink-dim">
+              <p className="tabular mt-0.5 text-xl text-ink-dim">
                 {formatKm(vehicle.currentOdometerKm)}
               </p>
             </Card>
@@ -73,7 +72,7 @@ export default async function HomePage() {
         <div className="fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+84px)] z-20 mx-auto max-w-[26rem]">
           <Link
             href={`/mezzi/${myOpen.vehicle.id}`}
-            className="flex min-h-14 w-full items-center justify-center rounded-2xl bg-amber px-5 text-lg font-semibold text-amber-ink shadow-[0_10px_30px_oklch(0.81_0.155_67/32%)] transition-transform duration-200 active:scale-[0.97]"
+            className="flex min-h-14 w-full items-center justify-center rounded-2xl bg-accent px-5 text-lg font-semibold text-accent-ink shadow-[0_10px_30px_oklch(0_0_0/50%)] transition-transform duration-200 active:scale-[0.97]"
           >
             Chiudi la corsa — {myOpen.vehicle.name}
           </Link>

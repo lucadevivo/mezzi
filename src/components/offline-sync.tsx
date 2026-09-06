@@ -38,7 +38,7 @@ export function OfflineSync() {
   return (
     <div
       role="status"
-      className="mx-4 mb-2 rounded-2xl border border-amber/40 bg-amber/10 px-3 py-2 text-sm text-amber"
+      className="mx-4 mb-2 rounded-2xl border border-accent/40 bg-accent/10 px-3 py-2 text-sm text-accent"
     >
       {!online ? 'Senza rete — quello che registri resta sul telefono. ' : ''}
       {queued > 0

@@ -86,7 +86,7 @@ export function ExpenseForm({
             <label
               key={option.value}
               className={`flex min-h-12 items-center gap-3 rounded-2xl border px-4 ${
-                rule === option.value ? 'border-amber bg-amber/10' : 'border-line bg-surface-2'
+                rule === option.value ? 'border-accent bg-accent/10' : 'border-line bg-surface-2'
               }`}
             >
               <input

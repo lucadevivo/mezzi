@@ -7,7 +7,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#101320',
+  themeColor: '#0a0a0a',
   // Il tastierino numerico non deve zoomare la pagina quando si tocca un campo.
   maximumScale: 1,
   // Le luci d'ambiente e la barra in basso arrivano fino al bordo del telefono.

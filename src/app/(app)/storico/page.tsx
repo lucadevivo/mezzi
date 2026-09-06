@@ -45,7 +45,7 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
         key={label}
         href={`/storico${search ? `?${search}` : ''}`}
         className={`rounded-full border px-3 py-1.5 text-sm ${
-          active ? 'border-amber bg-amber text-amber-ink' : 'border-line bg-surface-2 text-ink-dim'
+          active ? 'border-accent bg-accent text-accent-ink' : 'border-line bg-surface-2 text-ink-dim'
         }`}
       >
         {label}

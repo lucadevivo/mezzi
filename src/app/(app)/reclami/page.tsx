@@ -73,7 +73,7 @@ export default async function ClaimsPage() {
 
             {row.status === 'pending' ? (
               <>
-                <p className="text-sm text-amber">
+                <p className="text-sm text-accent">
                   Termine: {formatRemaining(row.deadlineAt, now)}
                   {resolution?.status === 'pending' && resolution.autoAssignCandidate
                     ? ` · se nessuno risponde, vanno a ${names.get(resolution.autoAssignCandidate) ?? '?'}`

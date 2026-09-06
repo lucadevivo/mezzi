@@ -1,10 +1,9 @@
 import Link from 'next/link';
 import type { ComponentProps, ReactNode } from 'react';
-import { formatEuro } from '@/lib/format';
 
 const CARD = 'glass rounded-[var(--radius-card)] relative overflow-hidden';
 const CONTROL =
-  'w-full rounded-2xl glass-2 px-4 text-ink transition-[border-color,background-color] focus:border-amber/60 focus:outline-none';
+  'w-full rounded-2xl glass-2 px-4 text-ink transition-[border-color,background-color] focus:border-accent/60 focus:outline-none';
 
 export function Card({
   children,
@@ -26,8 +25,8 @@ export function Card({
       style={
         accent
           ? {
-              borderColor: `${accent}66`,
-              backgroundImage: `linear-gradient(103deg, ${accent}2e, transparent 46%)`,
+              borderColor: `${accent}4d`,
+              backgroundImage: `linear-gradient(103deg, ${accent}1f, transparent 44%)`,
             }
           : undefined
       }
@@ -41,7 +40,7 @@ export function PrimaryButton({ className = '', ...props }: ComponentProps<'butt
   return (
     <button
       {...props}
-      className={`min-h-14 w-full rounded-2xl bg-amber px-5 text-lg font-semibold text-amber-ink shadow-[0_8px_24px_oklch(0.81_0.155_67/28%)] transition-transform duration-200 active:scale-[0.97] disabled:opacity-50 ${className}`}
+      className={`min-h-14 w-full rounded-2xl bg-accent px-5 text-lg font-semibold text-accent-ink shadow-[0_8px_24px_oklch(0_0_0/45%)] transition-transform duration-200 active:scale-[0.97] disabled:opacity-50 ${className}`}
     />
   );
 }
@@ -59,7 +58,7 @@ export function PrimaryLink({ className = '', ...props }: ComponentProps<typeof 
   return (
     <Link
       {...props}
-      className={`flex min-h-14 w-full items-center justify-center rounded-2xl bg-amber px-5 text-lg font-semibold text-amber-ink shadow-[0_8px_24px_oklch(0.81_0.155_67/28%)] transition-transform duration-200 active:scale-[0.97] ${className}`}
+      className={`flex min-h-14 w-full items-center justify-center rounded-2xl bg-accent px-5 text-lg font-semibold text-accent-ink shadow-[0_8px_24px_oklch(0_0_0/45%)] transition-transform duration-200 active:scale-[0.97] ${className}`}
     />
   );
 }
@@ -116,70 +115,5 @@ export function EmptyState({ title, hint }: { title: string; hint: string }) {
       <p className="font-medium text-ink">{title}</p>
       <p className="mt-1 text-sm text-ink-dim">{hint}</p>
     </div>
-  );
-}
-
-/**
- * Elemento firma: il quadrante del saldo. L'ago si muove tra debito e credito,
- * come uno strumento del cruscotto — non come una barra di progresso.
- */
-export function SaldoGauge({
-  balanceCents,
-  scaleCents = 5000,
-}: {
-  balanceCents: number;
-  scaleCents?: number;
-}) {
-  const clamped = Math.max(-1, Math.min(1, balanceCents / scaleCents));
-  // -1 (debito) è a sinistra, +1 (credito) a destra: 180° di corsa in tutto.
-  const angle = clamped * 90;
-  const color = balanceCents < 0 ? 'var(--color-debt)' : 'var(--color-credit)';
-
-  return (
-    <svg
-      viewBox="0 0 200 112"
-      className="w-full max-w-[280px]"
-      role="img"
-      aria-label={`Saldo ${formatEuro(balanceCents)}`}
-    >
-      <defs>
-        <linearGradient id="saldo-arc" x1="0" x2="1">
-          <stop offset="0%" stopColor="var(--color-debt)" />
-          <stop offset="50%" stopColor="var(--color-ink-dim)" />
-          <stop offset="100%" stopColor="var(--color-credit)" />
-        </linearGradient>
-      </defs>
-      <path
-        d="M 16 100 A 84 84 0 0 1 184 100"
-        fill="none"
-        stroke="url(#saldo-arc)"
-        strokeWidth="8"
-        strokeLinecap="round"
-      />
-      {[-90, -45, 0, 45, 90].map((tick) => (
-        <line
-          key={tick}
-          x1="100"
-          y1="26"
-          x2="100"
-          y2="34"
-          stroke="var(--color-line)"
-          strokeWidth="2"
-          transform={`rotate(${tick} 100 100)`}
-        />
-      ))}
-      <g transform={`rotate(${angle} 100 100)`}>
-        <line
-          x1="100"
-          y1="100"
-          x2="100"
-          y2="38"
-          stroke={color}
-          strokeWidth="4"
-          strokeLinecap="round"
-        />
-      </g>
-      <circle cx="100" cy="100" r="7" fill={color} />
-    </svg>
   );
 }

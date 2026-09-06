@@ -98,7 +98,7 @@ export function RefuelForm({
               aria-pressed={level === option.value}
               className={`min-h-12 rounded-2xl border text-base font-medium ${
                 level === option.value
-                  ? 'border-amber bg-amber text-amber-ink'
+                  ? 'border-accent bg-accent text-accent-ink'
                   : 'border-line bg-surface-2 text-ink'
               }`}
             >

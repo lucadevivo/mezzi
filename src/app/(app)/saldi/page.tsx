@@ -58,7 +58,7 @@ export default async function BalancesPage() {
             <Card key={`${t.from}-${t.to}-${i}`} className="px-4 py-3">
               <p>
                 <span className="font-medium">{nameOf(t.from)}</span> deve{' '}
-                <span className="tabular text-amber">{formatEuro(t.amountCents)}</span> a{' '}
+                <span className="tabular text-accent">{formatEuro(t.amountCents)}</span> a{' '}
                 <span className="font-medium">{nameOf(t.to)}</span>
               </p>
             </Card>

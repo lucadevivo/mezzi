@@ -1,28 +1,35 @@
 @import 'tailwindcss';
 
 /*
- * "Vetro": fondo notturno quasi nero con due luci d'ambiente fisse, e sopra
- * lastre traslucide che quelle luci le raccolgono — i pannelli di iOS. Il blur
- * ha senso solo se dietro c'è qualcosa da sfocare: le luci sono quel qualcosa.
- * I numeri restano in mono tabellare: il contachilometri non deve ballare.
+ * "Vetro": lastre traslucide su fondo notturno, i pannelli di iOS. Il blur ha
+ * senso solo se dietro c'è qualcosa da sfocare: la luce d'ambiente in
+ * `body::before` è quel qualcosa.
+ *
+ * La palette è quella della modalità scura dell'app dei turni: neutri puri,
+ * zero croma, azione primaria bianca. `surface` e `surface-2` sono bianchi
+ * trasparenti che sul fondo cadono esattamente sui suoi grigi (0.205 e 0.269).
  */
 @theme {
-  --color-base: #101320;
-  --color-surface: oklch(1 0 0 / 7%);
-  --color-surface-2: oklch(1 0 0 / 11%);
-  --color-line: oklch(1 0 0 / 14%);
-  --color-ink: oklch(0.98 0.004 265);
-  --color-ink-dim: oklch(0.76 0.015 265);
-  --color-amber: oklch(0.81 0.155 67);
-  --color-amber-ink: oklch(0.24 0.04 67);
-  --color-debt: oklch(0.7 0.2 24);
-  --color-credit: oklch(0.79 0.18 152);
+  --color-base: #0a0a0a;
+  --color-surface: oklch(1 0 0 / 8%);
+  --color-surface-2: oklch(1 0 0 / 14%);
+  --color-line: oklch(1 0 0 / 10%);
+  --color-ink: oklch(0.985 0 0);
+  --color-ink-dim: oklch(0.708 0 0);
+  --color-accent: oklch(0.922 0 0);
+  --color-accent-ink: oklch(0.205 0 0);
+  --color-debt: oklch(0.704 0.191 22.216);
+  /* I turni in scuro non hanno un verde: questo tiene la croma del rosso di
+     sistema, così debito e credito pesano uguale sullo schermo. */
+  --color-credit: oklch(0.75 0.15 150);
 
   /* Su iPhone questo è SF Pro vero, senza scaricare niente: nessun font
      di rete può somigliare a iOS quanto il font di iOS. */
   --font-sans:
     -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', system-ui, sans-serif;
-  --font-mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, monospace;
+  /* I numeri vanno in grazie: su iPhone `ui-serif` è New York, altrove Georgia.
+     Un contachilometri è uno strumento, non un terminale. */
+  --font-numeric: ui-serif, 'New York', Georgia, 'Times New Roman', serif;
 
   --radius-card: 22px;
 
@@ -53,8 +60,8 @@ body::before {
   z-index: -1;
   pointer-events: none;
   background:
-    radial-gradient(58% 42% at 8% -8%, oklch(0.6 0.15 258 / 42%), transparent 70%),
-    radial-gradient(66% 46% at 96% 104%, oklch(0.68 0.15 62 / 34%), transparent 72%);
+    radial-gradient(62% 44% at 12% -10%, oklch(1 0 0 / 9%), transparent 70%),
+    radial-gradient(70% 48% at 92% 106%, oklch(1 0 0 / 6%), transparent 72%);
 }
 
 @layer components {
@@ -84,11 +91,12 @@ body::before {
   }
 }
 
-/* I numeri del contachilometri non devono ballare mentre si aggiornano. */
+/* I numeri del contachilometri non devono ballare mentre si aggiornano: cifre
+   di uguale larghezza, e lining perché Georgia di suo le farebbe minuscole. */
 .tabular {
-  font-family: var(--font-mono);
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -0.01em;
+  font-family: var(--font-numeric);
+  font-variant-numeric: lining-nums tabular-nums;
+  letter-spacing: 0;
 }
 
 /* Titolone iOS: 34px semibold, tracking stretto. */
@@ -108,7 +116,7 @@ select {
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-amber);
+  outline: 2px solid var(--color-accent);
   outline-offset: 2px;
 }
 

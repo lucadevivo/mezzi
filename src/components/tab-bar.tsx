@@ -90,7 +90,7 @@ export function TabBar({ claims, elsewhere }: { claims: number; elsewhere: numbe
             href={tab.href}
             aria-current={active ? 'page' : undefined}
             className={`relative flex min-h-14 flex-1 flex-col items-center justify-center gap-0.5 rounded-[20px] text-[11px] font-medium transition-[color,background-color,transform] duration-200 active:scale-95 ${
-              active ? 'bg-amber/15 text-amber' : 'text-ink-dim'
+              active ? 'bg-accent/15 text-accent' : 'text-ink-dim'
             }`}
           >
             {tab.icon}

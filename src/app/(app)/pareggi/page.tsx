@@ -53,7 +53,7 @@ export default async function SettlementsPage() {
                 {s.confirmedByRecipient ? (
                   <span className="text-credit">confermato</span>
                 ) : (
-                  <span className="text-amber">in attesa di conferma</span>
+                  <span className="text-accent">in attesa di conferma</span>
                 )}
               </p>
               {s.note ? <p className="mt-1 text-sm text-ink-dim">{s.note}</p> : null}

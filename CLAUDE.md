@@ -56,22 +56,29 @@ può anche chiudere offline. Il server (`/api/sync`) riconosce gli id già appli
 
 ## Direzione visiva — "Vetro"
 
-Notte quasi nera (`base #101320`) con due luci d'ambiente fisse dietro tutto (`body::before`), e
-sopra lastre traslucide che quelle luci le raccolgono: è la grammatica di iOS. **Il blur senza
-niente dietro è solo un pannello grigio**: se togli le luci, togli anche il vetro.
+Lastre traslucide su fondo notturno, la grammatica di iOS. Il blur ha senso solo se dietro c'è
+qualcosa da sfocare: la luce d'ambiente in `body::before` è quel qualcosa — **se la togli, togli
+anche il vetro**.
 
-- Token in `src/app/globals.css`: `surface` e `surface-2` sono bianchi trasparenti, non tinte
-  piene; `ink oklch(0.98 …)`, `amber oklch(0.81 0.155 67)`, `debt`/`credit` sui rossi/verdi iOS.
-- Due classi in `@layer components`: `.glass` (lastra: blur + saturate + bordo chiaro in alto come
-  riflesso speculare) e `.glass-2` (livello interno, niente secondo blur — sarebbe GPU sprecata).
+- **Palette = modalità scura dell'app dei turni** (`~/Progetti/turn-creation-screen`): neutri puri,
+  croma zero. `base #0a0a0a`, `ink oklch(0.985 0 0)`, `ink-dim oklch(0.708 0 0)`, azione primaria
+  `accent oklch(0.922 0 0)` (quasi bianca, testo scuro sopra), `debt` = destructive dei turni.
+  Il `credit` verde non esiste nei turni: è stato aggiunto tenendo la stessa croma del rosso, così
+  debito e credito pesano uguale. `surface` e `surface-2` sono bianchi trasparenti che sul fondo
+  cadono esattamente sui grigi dei turni (0.205 e 0.269).
+- Due classi in `@layer components`: `.glass` (blur + saturate + bordo chiaro in alto come riflesso
+  speculare) e `.glass-2` per i livelli interni, senza un secondo blur — sarebbe GPU sprecata.
   Stanno in `@layer components` apposta: le utility Tailwind devono poterle sovrascrivere.
 - Font: **stack di sistema**, che su iPhone è SF Pro vero. Nessun font di rete somiglia a iOS
-  quanto il font di iOS, e non si scarica niente. Numeri in `.tabular` (SF Mono).
+  quanto il font di iOS, e non si scarica niente.
+- **I numeri vanno in grazie**: `.tabular` usa `ui-serif` (New York su iPhone, Georgia altrove) con
+  `lining-nums tabular-nums`. Un contachilometri è uno strumento, non un terminale; il `lining`
+  serve perché Georgia di suo scriverebbe cifre minuscole.
 - Raggi larghi (`--radius-card: 22px`, controlli `rounded-2xl`), titolone `.title-lg` da 34px.
-- Elemento firma: il quadrante del saldo (`SaldoGauge`).
 - Ogni mezzo tinge la sua card (bordo + sfumatura diagonale dal lato), **non** una banda sul
   fianco: sbagliare mezzo è l'errore più probabile dell'app e a colpo d'occhio deve essere
-  evidente, ma sul vetro la luce arriva da un lato, non a strisce.
+  evidente, ma sul vetro la luce arriva da un lato, non a strisce. Sul fondo neutro la tinta va
+  tenuta bassa (`1f` di alpha): tarata più forte urlava.
 
 **I colori identitari di utenti e mezzi (nel seed) sono validati, non scelti a occhio**: banda di
 luminosità per fondo scuro, soglia di croma, separazione sotto daltonismo, contrasto. La coppia
@@ -81,6 +88,10 @@ La navigazione sta **in fondo** (`src/components/tab-bar.tsx`, tab bar di vetro 
 safe-area): sopra il pollice non ci arriva. Quattro voci — Mezzi, Saldi, Reclami, Altro — e non di
 più: una barra più lunga sfonda la larghezza del telefono. Tutto il resto sta dentro "Altro".
 L'azione della pagina (es. "Chiudi la corsa") sta sopra la tab bar, mai sotto.
+
+**La home entra in uno schermo da 393×852 senza scorrere**, ed è un vincolo, non un caso: saldo,
+tre mezzi e suggerimento. Per farcela è sparito il quadrante del saldo (`SaldoGauge`): di un saldo
+interessa la cifra. Se aggiungi qualcosa alla home, misura di nuovo.
 
 ## Regole non negoziabili
 

@@ -151,7 +151,7 @@ function StartTrip({
       {check?.kind === 'open_trip' ? <p className="text-ink-dim">{check.message}</p> : null}
 
       {check?.kind === 'unclaimed' ? (
-        <div className="space-y-3 rounded-2xl border border-amber/40 bg-amber/10 p-4">
+        <div className="space-y-3 rounded-2xl border border-accent/40 bg-accent/10 p-4">
           <p className="font-semibold text-ink">
             {formatKm(check.distanceKm ?? 0)} non registrati su questo mezzo
           </p>
@@ -294,7 +294,7 @@ function CloseTrip({
   if (trip.pending) {
     return (
       <div className="space-y-4">
-        <p className="rounded-2xl border border-amber/40 bg-amber/10 px-4 py-3 text-sm text-amber">
+        <p className="rounded-2xl border border-accent/40 bg-accent/10 px-4 py-3 text-sm text-accent">
           Corsa avviata senza rete: parte da sola appena torna il segnale.
         </p>
         {fields}

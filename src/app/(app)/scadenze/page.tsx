@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
 
 const STATE_STYLE = {
   overdue: 'text-debt',
-  soon: 'text-amber',
+  soon: 'text-accent',
   ok: 'text-ink-dim',
 } as const;
 
