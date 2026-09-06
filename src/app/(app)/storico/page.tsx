@@ -1,5 +1,5 @@
 import { eq } from 'drizzle-orm';
-import Link from 'next/link';
+import { HistoryFilters } from '@/components/history-filters';
 import { ReverseButton } from '@/components/reverse-button';
 import { Card, EmptyState } from '@/components/ui';
 import { requireUser } from '@/lib/auth/session';
@@ -36,23 +36,6 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
   const trips = showTrips ? listTrips(query) : [];
   const refuels = showRefuels ? listAllRefuels(query) : [];
 
-  const chip = (label: string, params: Search, active: boolean) => {
-    const search = new URLSearchParams(
-      Object.entries({ ...filters, ...params }).filter(([, v]) => v) as [string, string][],
-    ).toString();
-    return (
-      <Link
-        key={label}
-        href={`/storico${search ? `?${search}` : ''}`}
-        className={`rounded-full border px-3 py-1.5 text-sm ${
-          active ? 'border-accent bg-accent text-accent-ink' : 'border-line bg-surface-2 text-ink-dim'
-        }`}
-      >
-        {label}
-      </Link>
-    );
-  };
-
   const entries = [
     ...trips.map((t) => ({ kind: 'trip' as const, at: t.endedAt ?? t.startedAt, row: t })),
     ...refuels.map((r) => ({ kind: 'refuel' as const, at: r.refueledAt, row: r })),
@@ -62,19 +45,11 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
     <div className="space-y-4">
       <h1 className="text-[15px] font-semibold text-ink-dim">Storico</h1>
 
-      <div className="flex flex-wrap gap-2">
-        {chip('Tutti i mezzi', { mezzo: undefined }, !filters.mezzo)}
-        {vehicles.map((v) => chip(v.name, { mezzo: v.id }, filters.mezzo === v.id))}
-      </div>
-      <div className="flex flex-wrap gap-2">
-        {chip('Tutti', { utente: undefined }, !filters.utente)}
-        {people.map((p) => chip(p.name, { utente: p.id }, filters.utente === p.id))}
-      </div>
-      <div className="flex flex-wrap gap-2">
-        {chip('Tutto', { tipo: undefined }, !filters.tipo)}
-        {chip('Solo corse', { tipo: 'corse' }, filters.tipo === 'corse')}
-        {chip('Solo rifornimenti', { tipo: 'rifornimenti' }, filters.tipo === 'rifornimenti')}
-      </div>
+      <HistoryFilters
+        vehicles={vehicles.map((v) => ({ id: v.id, name: v.name }))}
+        people={people.map((p) => ({ id: p.id, name: p.name }))}
+        filters={filters}
+      />
 
       {entries.length === 0 ? (
         <EmptyState title="Niente da mostrare" hint="Prova a togliere qualche filtro." />

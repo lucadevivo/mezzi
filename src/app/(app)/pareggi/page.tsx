@@ -35,7 +35,7 @@ export default async function SettlementsPage() {
         {settlements.length === 0 ? (
           <EmptyState
             title="Nessun pareggio"
-            hint="Quando qualcuno salda in contanti o con Satispay, si registra qui."
+            hint="Quando qualcuno salda un debito, si registra qui."
           />
         ) : null}
         {settlements.map((s) => {

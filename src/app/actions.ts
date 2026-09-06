@@ -308,7 +308,7 @@ export async function recordExpenseAction(
 const settlementSchema = z.object({
   toUserId: z.string().min(1),
   amount: decimal,
-  method: z.enum(['contanti', 'satispay', 'bonifico']),
+  method: z.enum(['contanti', 'bonifico']),
   note: z.string().trim().max(200).optional(),
 });
 

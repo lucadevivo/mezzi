@@ -376,7 +376,7 @@ export const settlements = sqliteTable('settlements', {
     .notNull()
     .references(() => user.id),
   amountCents: integer('amount_cents').notNull(),
-  method: text('method', { enum: ['contanti', 'satispay', 'bonifico'] }).notNull(),
+  method: text('method', { enum: ['contanti', 'bonifico'] }).notNull(),
   date: timestamp('date').notNull(),
   note: text('note'),
   confirmedByRecipient: integer('confirmed_by_recipient', { mode: 'boolean' })

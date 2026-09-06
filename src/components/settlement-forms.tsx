@@ -32,7 +32,6 @@ export function SettlementForm({ people }: { people: { id: string; name: string 
       <Field label="Come" hint="Il saldo si muove solo quando l’altro conferma di aver ricevuto.">
         <select name="method" className={selectClass}>
           <option value="contanti">Contanti</option>
-          <option value="satispay">Satispay</option>
           <option value="bonifico">Bonifico</option>
         </select>
       </Field>
