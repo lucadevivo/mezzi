@@ -1,4 +1,4 @@
-import { Card, EmptyState } from '@/components/ui';
+import { Card } from '@/components/ui';
 import { requireUser } from '@/lib/auth/session';
 import { formatKm } from '@/lib/format';
 import { listBalances } from '@/lib/services/balances';
@@ -48,14 +48,6 @@ export default async function BalancesPage() {
             </Card>
           );
         })}
-      </section>
-
-      <section className="space-y-2">
-        <h2 className="text-[15px] font-semibold text-ink-dim">Come si pareggia</h2>
-        <EmptyState
-          title="Mettendo carburante"
-          hint="Chi è indietro rientra al distributore: i soldi che mette diventano chilometri. Non ci si passa denaro."
-        />
       </section>
 
       {others.length > 0 ? (
