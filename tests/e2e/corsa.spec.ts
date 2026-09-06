@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { enterOdometer } from './helpers';
+import { closeTrip, enterOdometer } from './helpers';
 
 test('rifornimento e corsa completa: i numeri tornano', async ({ page }) => {
   await page.goto('/');
@@ -32,12 +32,7 @@ test('rifornimento e corsa completa: i numeri tornano', async ({ page }) => {
 
   await expect(page.getByText('Corsa in corso')).toBeVisible();
 
-  await enterOdometer(page, 'Contachilometri di arrivo', '100');
-  await page.getByRole('button', { name: 'Chiudi la corsa' }).click();
-
-  // 100 km in pochi secondi: il controllo di plausibilità chiede conferma, come deve.
-  await expect(page.getByText(/200 km\/h/)).toBeVisible();
-  await page.getByRole('button', { name: 'Confermo, chiudi la corsa' }).click();
+  await closeTrip(page, '100');
 
   await expect(page.getByText('100 km', { exact: true })).toBeVisible();
 
@@ -74,11 +69,7 @@ test('un contachilometri con i decimali non blocca la corsa successiva', async (
   await page.getByRole('button', { name: 'Avanti' }).click();
   await page.getByRole('button', { name: 'Avvia la corsa' }).click();
 
-  await enterOdometer(page, 'Contachilometri di arrivo', '150,5');
-  await page.getByRole('button', { name: 'Chiudi la corsa' }).click();
-  // 50 km in pochi secondi: il controllo di plausibilita' chiede conferma, come deve.
-  await expect(page.getByText(/200 km\/h/)).toBeVisible();
-  await page.getByRole('button', { name: 'Confermo, chiudi la corsa' }).click();
+  await closeTrip(page, '150,5');
 
   await expect(page.getByText('150,5 km', { exact: true })).toBeVisible();
 

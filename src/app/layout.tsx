@@ -10,6 +10,8 @@ const geistMono = Geist_Mono({ variable: '--font-geist-mono', subsets: ['latin']
 export const metadata: Metadata = {
   title: 'Mezzi',
   description: 'Chi ha consumato quanto, chi deve mettere benzina.',
+  // iOS l'icona della home la prende da qui, non dal manifest.
+  icons: { apple: '/icons/apple-touch-icon.png' },
 };
 
 export const viewport: Viewport = {
