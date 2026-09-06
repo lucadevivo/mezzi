@@ -1,11 +1,10 @@
 import { randomUUID } from 'node:crypto';
 import { desc, eq } from 'drizzle-orm';
-import { resolveConsumption } from '@/lib/billing';
+import { kmBought, resolveConsumption } from '@/lib/billing';
 import { db } from '@/lib/db';
 import { refuels, vehicles } from '@/lib/db/schema';
 import { logAudit } from './audit';
 import { addLedgerEntries } from './ledger';
-import { reconcileAfterRefuel } from './reconciliation';
 import { getVehicle } from './vehicles';
 
 export class RefuelServiceError extends Error {}
@@ -59,18 +58,29 @@ export function recordRefuel(input: RecordRefuelInput): { refuelId: string } {
       })
       .run();
 
-    // Chi mette benzina anticipa per tutti: l'importo speso gli viene accreditato per intero.
+    /*
+     * Chi mette carburante compra autonomia, e l'autonomia gli viene accreditata tutta:
+     * i litri messi, moltiplicati per il consumo del mezzo, sono i chilometri che quel
+     * pieno può fare. È così che i soldi entrano nel conto — l'unico posto dove il
+     * denaro diventa chilometri.
+     */
+    // Il consumo in uso adesso: quello misurato se ce n'è abbastanza, altrimenti il
+    // libretto. Chi rifornisce oggi viene accreditato al meglio di quel che si sa oggi.
+    const kmPerLiter = vehicle.computedConsumptionKmL ?? vehicle.declaredConsumptionKmL;
+    const km = kmBought(input.liters, kmPerLiter);
+
     addLedgerEntries(
       [
         {
           userId: input.userId,
           vehicleId: input.vehicleId,
           type: 'refuel_credit',
+          amountKm: km,
           amountCents: input.totalCents,
           sourceType: 'refuel',
           sourceId: refuelId,
           occurredAt: refueledAt,
-          description: `Rifornimento ${input.liters.toFixed(2)} l su ${vehicle.name}`,
+          description: `${input.liters.toFixed(2)} l su ${vehicle.name}: ${km.toFixed(0)} km`,
         },
       ],
       tx,
@@ -94,11 +104,13 @@ export function recordRefuel(input: RecordRefuelInput): { refuelId: string } {
     );
   });
 
+  /*
+   * Non c'è niente da riconciliare: il saldo è in chilometri, e i chilometri delle
+   * corse sono misurati, non stimati. La lancetta serve ancora, ma per un'altra cosa:
+   * misurare il consumo reale, che decide quanti km vale un litro nei prossimi
+   * accrediti. Per questo il ricalcolo resta, e resta qui.
+   */
   recomputeConsumption(input.vehicleId);
-  // Un pieno dice quanto carburante è stato davvero bruciato dal pieno precedente:
-  // è il momento in cui la stima si può correggere con un dato vero.
-  // Basta sapere dov'è la lancetta: non serve il pieno per sapere quanto si è bruciato.
-  if (input.tankFractionAfter !== null) reconcileAfterRefuel(refuelId, refueledAt);
 
   return { refuelId };
 }

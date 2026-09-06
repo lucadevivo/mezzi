@@ -44,6 +44,22 @@ export function splitTripCost(
   return splitCentsAmong(costCents, [...new Set(participants)]);
 }
 
+/**
+ * Gli stessi km divisi tra chi era a bordo. Si lavora in **decimi di km** — la
+ * risoluzione del contachilometri — così la somma delle quote fa esattamente i km
+ * della corsa, che è l'invariante su cui si regge tutto (km attribuiti + km non
+ * fatturabili = km reali del mezzo).
+ */
+export function splitTripKm(
+  distanceKm: number,
+  driverId: UserId,
+  passengerIds: readonly UserId[] = [],
+): Map<UserId, number> {
+  const participants = [...new Set([driverId, ...passengerIds.filter((id) => id !== driverId)])];
+  const decimi = splitCentsAmong(Math.round(distanceKm * 10), participants);
+  return new Map([...decimi].map(([id, parte]) => [id, parte / 10]));
+}
+
 export interface OdometerCheck {
   startKm: number;
   endKm: number;

@@ -295,34 +295,6 @@ export const refuels = sqliteTable(
   (table) => [index('refuels_vehicle_odometer_idx').on(table.vehicleId, table.odometerKm)],
 );
 
-export const expenses = sqliteTable(
-  'expenses',
-  {
-    id: text('id').primaryKey(),
-    vehicleId: text('vehicle_id')
-      .notNull()
-      .references(() => vehicles.id),
-    paidByUserId: text('paid_by_user_id')
-      .notNull()
-      .references(() => user.id),
-    category: text('category', {
-      enum: ['assicurazione', 'bollo', 'revisione', 'tagliando', 'gomme', 'riparazione', 'altro'],
-    }).notNull(),
-    amountCents: integer('amount_cents').notNull(),
-    date: timestamp('date').notNull(),
-    /** Periodo coperto: serve alla ripartizione `by_km`. */
-    periodStart: timestamp('period_start'),
-    periodEnd: timestamp('period_end'),
-    splitRule: text('split_rule', { enum: ['equal', 'by_km', 'custom', 'none'] })
-      .default('equal')
-      .notNull(),
-    note: text('note'),
-    createdAt: createdAt(),
-    updatedAt: updatedAt(),
-  },
-  (table) => [index('expenses_vehicle_date_idx').on(table.vehicleId, table.date)],
-);
-
 /* -------------------------------------------------------------------------- */
 /* Contabilità                                                                 */
 /* -------------------------------------------------------------------------- */
@@ -340,19 +312,20 @@ export const ledgerEntries = sqliteTable(
       .references(() => user.id),
     vehicleId: text('vehicle_id').references(() => vehicles.id),
     type: text('type', {
-      enum: [
-        'consumption_charge',
-        'refuel_credit',
-        'expense_charge',
-        'expense_credit',
-        'settlement',
-        'adjustment',
-      ],
+      enum: ['consumption_charge', 'refuel_credit', 'adjustment', 'opening'],
     }).notNull(),
-    /** Negativo = addebito, positivo = accredito. Il saldo è SUM(amount_cents). */
-    amountCents: integer('amount_cents').notNull(),
+    /**
+     * Denaro. Resta per le righe vecchie e per lo storico, ma **non fa più il saldo**:
+     * una corsa non ha un prezzo da addebitare, ha dei chilometri.
+     */
+    amountCents: integer('amount_cents').notNull().default(0),
+    /**
+     * Chilometri: negativi se guidati, positivi se comprati col carburante.
+     * **Il saldo è `SUM(amount_km)`** e si legge come autonomia, non come debito.
+     */
+    amountKm: real('amount_km').notNull().default(0),
     sourceType: text('source_type', {
-      enum: ['trip', 'unclaimed_trip', 'refuel', 'expense', 'settlement', 'manual'],
+      enum: ['trip', 'unclaimed_trip', 'refuel', 'manual'],
     }).notNull(),
     sourceId: text('source_id'),
     reversesEntryId: text('reverses_entry_id'),
@@ -365,27 +338,6 @@ export const ledgerEntries = sqliteTable(
     index('ledger_source_idx').on(table.sourceType, table.sourceId),
   ],
 );
-
-/** Un pareggio vale solo quando chi riceve conferma. */
-export const settlements = sqliteTable('settlements', {
-  id: text('id').primaryKey(),
-  fromUserId: text('from_user_id')
-    .notNull()
-    .references(() => user.id),
-  toUserId: text('to_user_id')
-    .notNull()
-    .references(() => user.id),
-  amountCents: integer('amount_cents').notNull(),
-  method: text('method', { enum: ['contanti', 'bonifico'] }).notNull(),
-  date: timestamp('date').notNull(),
-  note: text('note'),
-  confirmedByRecipient: integer('confirmed_by_recipient', { mode: 'boolean' })
-    .default(false)
-    .notNull(),
-  confirmedAt: timestamp('confirmed_at'),
-  createdAt: createdAt(),
-  updatedAt: updatedAt(),
-});
 
 export const deadlines = sqliteTable('deadlines', {
   id: text('id').primaryKey(),

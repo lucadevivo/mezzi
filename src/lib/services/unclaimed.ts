@@ -4,6 +4,7 @@ import {
   claimDeadline,
   resolveUnclaimed,
   splitCentsAmong,
+  splitTripKm,
   tripCost,
   type ClaimResponse,
   type UnclaimedResolution,
@@ -141,10 +142,12 @@ function applyResolution(
   if (row.status !== 'pending') return;
 
   const shares = splitCentsAmong(row.costCents, resolution.chargedTo);
-  const distanceEach = row.distanceKm / resolution.chargedTo.length;
+  // I km si dividono in decimi, come nelle corse vere: la somma deve tornare esatta.
+  const kmShares = splitTripKm(row.distanceKm, resolution.chargedTo[0], resolution.chargedTo);
   const litersEach = row.litersEstimated / resolution.chargedTo.length;
 
   for (const [userId, amountCents] of shares) {
+    const distanceEach = kmShares.get(userId) ?? 0;
     const tripId = randomUUID();
     // Corsa sintetica: gli odometri sono quelli della finestra, uguali per tutti
     // gli addebitati. Servono a tenere i km nello storico, non a dire chi era dove.
@@ -173,6 +176,7 @@ function applyResolution(
           userId,
           vehicleId: row.vehicleId,
           type: 'consumption_charge',
+          amountKm: -(kmShares.get(userId) ?? 0),
           amountCents: -amountCents,
           sourceType: 'unclaimed_trip',
           sourceId: row.id,

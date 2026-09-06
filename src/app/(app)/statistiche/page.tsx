@@ -16,7 +16,6 @@ export const dynamic = 'force-dynamic';
 const EXPORTS = [
   { kind: 'corse', label: 'Corse' },
   { kind: 'rifornimenti', label: 'Rifornimenti' },
-  { kind: 'spese', label: 'Spese' },
   { kind: 'movimenti', label: 'Movimenti' },
 ] as const;
 

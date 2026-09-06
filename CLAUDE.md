@@ -92,6 +92,12 @@ safe-area): sopra il pollice non ci arriva. Quattro voci — Mezzi, Saldi, Recla
 più: una barra più lunga sfonda la larghezza del telefono. Tutto il resto sta dentro "Altro".
 L'azione della pagina (es. "Chiudi la corsa") sta sopra la tab bar, mai sotto.
 
+**Niente `loading.tsx` nel gruppo `(app)`.** Ci è stato, per far vedere qualcosa mentre la pagina
+arriva, ed è stato tolto: con un `redirect()` dentro una server action su rotte dinamiche il client
+resta appeso a caso — misurato, 2 fallimenti su 5 con lo scheletro, 0 su 5 senza. Il pulsante
+«Chiudi la corsa» che resta disabilitato per sempre vale più di qualche decimo di secondo di
+sensazione. Se lo rimetti, misura di nuovo.
+
 **Home e rifornimento entrano senza scorrere in 393×620**, ed è un vincolo, non un caso: 620 è
 quello che resta di un iPhone quando Safari tiene le sue barre, e il pulsante «Registra il
 rifornimento» deve stare sopra la piega. Per starci sono spariti il quadrante del saldo
@@ -102,14 +108,14 @@ queste due schermate, **rimisura** — a 620 non c'è un pixel di margine.
 ## Regole non negoziabili
 
 1. **`src/lib/billing/` resta puro.** Nessuna dipendenza da DB, framework o clock di sistema: il tempo si passa come parametro. Ogni formula ha un test.
-2. **Importi in centesimi interi.** Mai float per il denaro.
-3. **`ledger_entries` è append-only.** Nessun UPDATE, nessun DELETE: le correzioni sono righe di storno che referenziano l'originale. Il saldo è sempre `SUM(amount_cents)`.
-4. **Costi congelati alla riga.** Litri, prezzo unitario e costo si scrivono alla chiusura della corsa (o al rilevamento della discrepanza) e non si ricalcolano mai retroattivamente.
-5. **Il contachilometri è l'unica fonte di verità.** Somma dei km attribuiti + km non fatturabili = km reali del mezzo. C'è un test che lo verifica.
-6. **Due invarianti sotto test:** somma dei saldi = valore del carburante pagato e non ancora consumato, e somma dei km (punto 5).
-7. **Il livello del serbatoio è una frazione, non quattro caselle.** `tank_fraction_after` va da 0 a 1 e si segna trascinando la lancetta come sul cruscotto (`TankGauge`). È **facoltativo** e di suo resta `null`: obbligare a scegliere un livello quando la lancetta sta in mezzo produce dati falsi, e i dati falsi qui diventano soldi.
-8. **Il consumo si misura serbatoio-a-serbatoio, non pieno-a-pieno.** In questa famiglia il pieno non lo fa quasi mai nessuno — venti euro alla volta — quindi aspettare due pieni vuol dire non misurare mai. Con due letture della lancetta il carburante bruciato è `capacità × (livello prima − livello dopo) + litri messi` (`burnedBetween`): con due pieni la formula si riduce ai litri del secondo, cioè al metodo classico. La lancetta si legge a occhio, quindi i campioni sono rumorosi: se ne tiene la mediana, si scartano gli outlier e sotto tre campioni si resta sul consumo da libretto.
-9. **Ogni rifornimento con la lancetta segnata riconcilia.** La differenza tra i litri davvero bruciati e i litri stimati già addebitati si redistribuisce con righe `adjustment`. Senza questo passaggio i saldi scivolano via e l'invariante 6 smette di valere.
+2. **Il saldo è in chilometri, non in euro.** `SUM(amount_km)` sul ledger. Guidare toglie km, mettere carburante ne aggiunge: **i soldi diventano chilometri in un punto solo**, al rifornimento (`litri × km/l`). Positivo = autonomia già pagata; negativo = km fatti e non ancora coperti. Il denaro resta sui rifornimenti come memoria di spesa, ma non entra nel saldo.
+3. **Si pareggia mettendo carburante, non passandosi contanti.** Non esistono pareggi né spese fisse: se ne è discusso e sono stati tolti apposta, non dimenticati.
+4. **Importi in centesimi interi, chilometri in decimi.** Mai float per il denaro; per i km si divide sempre in decimi (`splitTripKm`) così la somma delle quote torna esatta.
+5. **`ledger_entries` è append-only.** Nessun UPDATE, nessun DELETE: le correzioni sono righe di storno che referenziano l'originale.
+6. **Il contachilometri è l'unica fonte di verità.** Somma dei km attribuiti + km non fatturabili = km reali del mezzo. C'è un test che lo verifica.
+7. **Due invarianti sotto test:** somma dei saldi = chilometri che il carburante in serbatoio può ancora fare (`autonomyInTankKm`), e somma dei km (punto 6).
+8. **Il livello del serbatoio è una frazione, non quattro caselle.** `tank_fraction_after` va da 0 a 1 e si segna trascinando la lancetta come sul cruscotto (`TankGauge`). È **facoltativo** e di suo resta `null`: obbligare a scegliere un livello quando la lancetta sta in mezzo produce dati falsi, e i dati falsi qui diventano chilometri sbagliati.
+9. **Il consumo si misura serbatoio-a-serbatoio, non pieno-a-pieno.** In questa famiglia il pieno non lo fa quasi mai nessuno — venti euro alla volta — quindi aspettare due pieni vuol dire non misurare mai. Con due letture della lancetta il carburante bruciato è `capacità × (livello prima − livello dopo) + litri messi` (`burnedBetween`): con due pieni la formula si riduce ai litri del secondo, cioè al metodo classico. Campioni rumorosi: mediana, outlier scartati, sotto tre campioni si resta sul libretto. Il consumo misurato **non ricalcola gli accrediti già dati**: vale per i prossimi.
 10. **Nessun segreto nel codice.** Tutto da `.env`, con `.env.example` versionato.
 11. **Niente over-engineering.** 3-5 utenti. Monolite leggibile, nessuna astrazione senza un secondo caso d'uso reale.
 
@@ -127,7 +133,7 @@ Un solo modello `users` con due flag:
 - `billable` — entra nella ripartizione dei costi. Nonna, ospiti e pagatori esterni: `false`.
 - `can_login` — ha credenziali. Utenti "registrati dall'admin" (nonna): `false`; le loro corse le crea solo l'admin.
 
-I movimenti degli utenti non fatturabili finiscono comunque a ledger (così l'invariante somma=0 regge),
+I movimenti degli utenti non fatturabili finiscono comunque a ledger (così i km tornano col contachilometri),
 ma non compaiono nella pagina "chi deve cosa a chi".
 
 ## Deploy

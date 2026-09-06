@@ -1,96 +1,76 @@
 import { describe, expect, it } from 'vitest';
 import {
+  autonomyInTankKm,
   balances,
-  ledgerTotal,
+  kmBought,
+  ledgerTotalKm,
   refuelSuggestion,
-  settlementPlan,
-  unconsumedFuelValueCents,
 } from './balance';
+import { splitTripKm } from './trip';
 import type { LedgerEntry } from './types';
 
-const at = new Date(2026, 6, 20);
-
-function entry(userId: string, amountCents: number, type: LedgerEntry['type']): LedgerEntry {
-  return { userId, amountCents, type, occurredAt: at };
+function riga(userId: string, amountKm: number): LedgerEntry {
+  return { userId, amountKm, type: 'consumption_charge', occurredAt: new Date(2026, 0, 1) };
 }
 
 describe('balances', () => {
-  it('somma accrediti e addebiti per utente', () => {
-    const result = balances([
-      entry('luca', 5000, 'refuel_credit'),
-      entry('luca', -1200, 'consumption_charge'),
-      entry('marco', -3800, 'consumption_charge'),
-    ]);
-    expect(result.get('luca')).toBe(3800);
-    expect(result.get('marco')).toBe(-3800);
+  it('somma i chilometri per utente', () => {
+    const risultato = balances([riga('u1', -50), riga('u2', -20), riga('u1', 300)]);
+    expect(risultato.get('u1')).toBe(250);
+    expect(risultato.get('u2')).toBe(-20);
+  });
+
+  it('non lascia code di virgola: i km stanno in decimi', () => {
+    const risultato = balances([riga('u1', 0.1), riga('u1', 0.2)]);
+    expect(risultato.get('u1')).toBe(0.3);
   });
 });
 
-describe('ledgerTotal', () => {
-  it('vale zero quando tutto il carburante pagato è stato consumato', () => {
-    expect(
-      ledgerTotal([
-        entry('luca', 5000, 'refuel_credit'),
-        entry('luca', -2500, 'consumption_charge'),
-        entry('marco', -2500, 'consumption_charge'),
-      ]),
-    ).toBe(0);
-  });
-
-  it('vale il carburante pagato e non ancora bruciato', () => {
-    expect(ledgerTotal([entry('luca', 5000, 'refuel_credit')])).toBe(5000);
+describe('ledgerTotalKm', () => {
+  it('vale i chilometri che il carburante nel serbatoio può ancora fare', () => {
+    // Comprati 400 km, guidati 250: restano 150 km di autonomia pagata.
+    const entries = [riga('u1', 400), riga('u1', -150), riga('u2', -100)];
+    expect(ledgerTotalKm(entries)).toBe(150);
+    expect(autonomyInTankKm(8.0645, 18.6)).toBeCloseTo(150, 0);
   });
 });
 
-describe('unconsumedFuelValueCents', () => {
-  it('valorizza i litri in serbatoio al prezzo medio ponderato', () => {
-    expect(unconsumedFuelValueCents(27.5, 180)).toBe(4950);
+describe('kmBought', () => {
+  it('i litri diventano chilometri col consumo del mezzo', () => {
+    expect(kmBought(9.4834, 18.6)).toBe(176.4);
   });
 });
 
 describe('refuelSuggestion', () => {
-  it('traduce il debito in euro da mettere, arrotondati a 5', () => {
-    const suggestion = refuelSuggestion(-2340, 180);
-    expect(suggestion.debtCents).toBe(2340);
-    expect(suggestion.suggestedCents).toBe(2500);
-    expect(suggestion.message).toBe(
-      'Sei indietro di 23,40 € — al prossimo pieno metti circa 25,00 €.',
-    );
+  it('in credito dice quanta autonomia resta', () => {
+    const s = refuelSuggestion(122, 214, 18.6);
+    expect(s.debtKm).toBe(0);
+    expect(s.suggestedCents).toBe(0);
+    expect(s.message).toContain('122 km');
   });
 
-  it('non arrotonda in eccesso un debito già multiplo di 5 euro', () => {
-    expect(refuelSuggestion(-2000, 180).suggestedCents).toBe(2000);
+  it('in pari lo dice e basta', () => {
+    expect(refuelSuggestion(0, 214, 18.6).message).toBe('Sei in pari.');
   });
 
-  it('non chiede niente a chi è in credito o in pari', () => {
-    expect(refuelSuggestion(1500, 180).suggestedCents).toBe(0);
-    expect(refuelSuggestion(0, 180).message).toBe('Sei in pari.');
+  it('in debito converte i km in euro col prezzo di adesso, arrotondando ai 5 €', () => {
+    // 186 km a 18,6 km/l fanno 10 litri: a 2,14 €/l sono 21,40 €, arrotondati a 25.
+    const s = refuelSuggestion(-186, 214, 18.6);
+    expect(s.debtKm).toBe(186);
+    expect(s.suggestedCents).toBe(2500);
+    expect(s.message).toContain('186 km');
   });
 });
 
-describe('settlementPlan', () => {
-  it('azzera i saldi con i passaggi minimi', () => {
-    const transfers = settlementPlan(
-      new Map([
-        ['luca', 3000],
-        ['marco', -2000],
-        ['giulia', -1000],
-      ]),
-    );
-    expect(transfers).toEqual([
-      { from: 'marco', to: 'luca', amountCents: 2000 },
-      { from: 'giulia', to: 'luca', amountCents: 1000 },
-    ]);
+describe('splitTripKm', () => {
+  it('divide i km tra chi era a bordo senza perderne per strada', () => {
+    const quote = splitTripKm(100, 'guidatore', ['a', 'b']);
+    const somma = [...quote.values()].reduce((x, y) => x + y, 0);
+    expect(Math.round(somma * 10) / 10).toBe(100);
+    expect(quote.size).toBe(3);
   });
 
-  it('non propone niente se sono tutti in pari', () => {
-    expect(
-      settlementPlan(
-        new Map([
-          ['luca', 0],
-          ['marco', 0],
-        ]),
-      ),
-    ).toEqual([]);
+  it('senza passeggeri i km sono tutti del guidatore', () => {
+    expect(splitTripKm(41.3, 'guidatore').get('guidatore')).toBe(41.3);
   });
 });

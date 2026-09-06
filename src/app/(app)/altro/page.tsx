@@ -1,24 +1,16 @@
 import Link from 'next/link';
 import { requireUser } from '@/lib/auth/session';
-import { pendingConfirmationsFor } from '@/lib/services/settlements';
 
 export const dynamic = 'force-dynamic';
 
 /** Tutto quello che non serve col mezzo in mano: si guarda da seduti, non in garage. */
 export default async function MorePage() {
   const me = await requireUser();
-  const pendingSettlements = pendingConfirmationsFor(me.id).length;
 
   // Impostazioni sta nell'avatar in alto a destra, non qui: due strade per la stessa
-  // schermata sono una di troppo. Spese fisse e Scadenze restano raggiungibili per URL
-  // (`/spese`, `/scadenze`) ma sono fuori dall'elenco: nessuno le apriva.
+  // schermata sono una di troppo. I pareggi in contanti non esistono più — il debito
+  // è in chilometri e si ripaga mettendo carburante. Scadenze resta solo per URL.
   const entries = [
-    {
-      href: '/pareggi',
-      label: 'Pareggi',
-      hint: 'Chi ha già pagato chi',
-      badge: pendingSettlements,
-    },
     { href: '/storico', label: 'Storico', hint: 'Corse e rifornimenti, con filtri' },
     { href: '/statistiche', label: 'Statistiche', hint: 'Km, costi, consumi, esportazioni' },
     ...(me.role === 'admin'
@@ -42,11 +34,6 @@ export default async function MorePage() {
               <span className="block text-sm text-ink-dim">{entry.hint}</span>
             </span>
             <span className="flex items-center gap-2">
-              {entry.badge ? (
-                <span className="tabular rounded-full bg-debt px-2 py-0.5 text-sm font-semibold">
-                  {entry.badge}
-                </span>
-              ) : null}
               {/* Chevron: dice che si va da qualche parte, come in iOS. */}
               <svg
                 viewBox="0 0 24 24"

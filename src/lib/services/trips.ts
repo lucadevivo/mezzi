@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { eq } from 'drizzle-orm';
 import {
   evaluateOdometerReading,
-  splitTripCost,
+  splitTripKm,
   tripCost,
   validateTrip,
   type DiscrepancyOutcome,
@@ -178,7 +178,7 @@ export function closeTrip(input: CloseTripInput): CloseTripResult {
   });
 
   const passengerIds = [...new Set(input.passengerIds ?? [])].filter((id) => id !== trip.userId);
-  const shares = splitTripCost(costCents, trip.userId, passengerIds);
+  const shares = splitTripKm(distanceKm, trip.userId, passengerIds);
 
   db.transaction((tx) => {
     tx.update(trips)
@@ -206,11 +206,11 @@ export function closeTrip(input: CloseTripInput): CloseTripResult {
     }
 
     addLedgerEntries(
-      [...shares].map(([userId, amount]) => ({
+      [...shares].map(([userId, km]) => ({
         userId,
         vehicleId: trip.vehicleId,
         type: 'consumption_charge' as const,
-        amountCents: -amount,
+        amountKm: -km,
         sourceType: 'trip' as const,
         sourceId: trip.id,
         occurredAt: now,

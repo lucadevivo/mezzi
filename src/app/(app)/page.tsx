@@ -1,9 +1,9 @@
 import Link from 'next/link';
 import { Card, EmptyState } from '@/components/ui';
 import { requireUser } from '@/lib/auth/session';
-import { formatEuro, formatKm, formatSince } from '@/lib/format';
+import { formatKm, formatSince } from '@/lib/format';
 import { getBalance, getRefuelSuggestion } from '@/lib/services/balances';
-import { getOpenTrip, listVehicles } from '@/lib/services/vehicles';
+import { getOpenTrip, getVehicleState, listVehicles } from '@/lib/services/vehicles';
 import { db } from '@/lib/db';
 import { user as userTable } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
@@ -12,9 +12,17 @@ export const dynamic = 'force-dynamic';
 
 export default async function HomePage() {
   const me = await requireUser();
-  const balanceCents = getBalance(me.id);
-  const suggestion = getRefuelSuggestion(me.id);
+  const balanceKm = getBalance(me.id);
   const vehicles = listVehicles();
+
+  // Il debito è in chilometri, ma il suggerimento è in euro: per convertirlo servono
+  // prezzo e consumo del mezzo più usato — quello su cui probabilmente rifornirai.
+  const riferimento = vehicles[0] ? getVehicleState(vehicles[0].id) : null;
+  const suggestion = getRefuelSuggestion(
+    me.id,
+    riferimento?.price.pricePerLiterCents ?? 0,
+    riferimento?.consumption.kmPerLiter ?? 0,
+  );
 
   const cards = vehicles.map((vehicle) => {
     const openTrip = getOpenTrip(vehicle.id);
@@ -31,13 +39,15 @@ export default async function HomePage() {
       {/* Il quadrante è sparito: di un saldo interessa la cifra, e la cifra da
           sola lascia entrare i mezzi nella prima schermata senza scorrere. */}
       <Card className="px-4 py-3">
-        <p className="text-sm text-ink-dim">Il tuo saldo</p>
+        <p className="text-sm text-ink-dim">
+          {balanceKm < 0 ? 'Chilometri da coprire' : 'La tua autonomia'}
+        </p>
         <p
           className={`tabular mt-0.5 text-[40px] font-semibold leading-none ${
-            balanceCents < 0 ? 'text-debt' : balanceCents > 0 ? 'text-credit' : 'text-ink-dim'
+            balanceKm < 0 ? 'text-debt' : balanceKm > 0 ? 'text-credit' : 'text-ink-dim'
           }`}
         >
-          {formatEuro(balanceCents)}
+          {formatKm(Math.abs(balanceKm))}
         </p>
         <p className="mt-2 text-sm text-ink-dim">{suggestion.message}</p>
       </Card>

@@ -71,9 +71,9 @@ const TABS = [
   },
 ];
 
-export function TabBar({ claims, elsewhere }: { claims: number; elsewhere: number }) {
+export function TabBar({ claims }: { claims: number }) {
   const pathname = usePathname();
-  const badges: Record<string, number> = { '/reclami': claims, '/altro': elsewhere };
+  const badges: Record<string, number> = { '/reclami': claims };
 
   return (
     <nav

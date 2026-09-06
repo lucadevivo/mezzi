@@ -14,7 +14,10 @@ export interface NewLedgerEntry {
   userId: string;
   vehicleId?: string | null;
   type: LedgerEntryType;
-  amountCents: Cents;
+  /** Chilometri: è questo che fa il saldo. */
+  amountKm: number;
+  /** Euro, solo come memoria di quanto è stato speso: non entra nel saldo. */
+  amountCents?: Cents;
   sourceType: LedgerSourceType;
   sourceId?: string | null;
   occurredAt: Date;

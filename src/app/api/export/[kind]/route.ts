@@ -2,12 +2,11 @@ import { getCurrentUser } from '@/lib/auth/session';
 import { centsToEuro, csvResponse, toCsv, type CsvValue } from '@/lib/csv';
 import { db } from '@/lib/db';
 import { ledgerEntries, user, vehicles } from '@/lib/db/schema';
-import { listExpenses } from '@/lib/services/expenses';
 import { listAllRefuels, listTrips } from '@/lib/services/history';
 
 export const dynamic = 'force-dynamic';
 
-const KINDS = ['corse', 'rifornimenti', 'spese', 'movimenti'] as const;
+const KINDS = ['corse', 'rifornimenti', 'movimenti'] as const;
 type Kind = (typeof KINDS)[number];
 
 const PRICE_SOURCE = {
@@ -86,21 +85,9 @@ export async function GET(_request: Request, { params }: { params: Promise<{ kin
       ]);
       break;
 
-    case 'spese':
-      headers = ['data', 'mezzo', 'categoria', 'pagata da', 'euro', 'ripartizione', 'nota'];
-      rows = listExpenses(undefined, 5000).map((expense) => [
-        expense.date,
-        vehicleNames.get(expense.vehicleId) ?? '',
-        expense.category,
-        names.get(expense.paidByUserId) ?? '',
-        centsToEuro(expense.amountCents),
-        expense.splitRule,
-        expense.note,
-      ]);
-      break;
 
     case 'movimenti':
-      headers = ['data', 'utente', 'mezzo', 'tipo', 'euro', 'descrizione'];
+      headers = ['data', 'utente', 'mezzo', 'tipo', 'km', 'euro', 'descrizione'];
       rows = db
         .select()
         .from(ledgerEntries)
@@ -111,6 +98,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ kin
           names.get(entry.userId) ?? '',
           entry.vehicleId ? (vehicleNames.get(entry.vehicleId) ?? '') : '',
           entry.type,
+          entry.amountKm,
           centsToEuro(entry.amountCents),
           entry.description,
         ]);

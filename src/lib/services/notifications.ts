@@ -55,18 +55,6 @@ export async function notifyUnclaimedResolved(
   });
 }
 
-export async function notifySettlementToConfirm(
-  toUserId: string,
-  fromUserId: string,
-  amountCents: number,
-): Promise<void> {
-  await notify([toUserId], {
-    title: 'Un pareggio da confermare',
-    body: `${nameOf(fromUserId)} dice di averti dato ${formatEuro(amountCents)}. Confermi?`,
-    url: '/pareggi',
-    tag: 'settlement',
-  });
-}
 
 const REMINDER_ACTION = 'trip.reminder';
 

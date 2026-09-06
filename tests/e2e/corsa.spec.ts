@@ -20,9 +20,9 @@ test('rifornimento e corsa completa: i numeri tornano', async ({ page }) => {
   await page.getByLabel('Livello del serbatoio dopo il rifornimento').fill('1');
   await page.getByRole('button', { name: 'Registra il rifornimento' }).click();
 
-  // Chi ha pagato il pieno è in credito di 72 euro: 72 € a 1,80 fanno 40 litri.
+  // Il conto non è in euro: 72 € a 1,80 fanno 40 litri, che a 16 km/l valgono 640 km.
   await page.goto('/saldi');
-  await expect(page.getByText('72,00 €').first()).toBeVisible();
+  await expect(page.getByText('640 km di autonomia').first()).toBeVisible();
 
   // Poi la corsa: 100 km a 16 km/l fanno 6,25 litri, cioè 11,25 euro.
   await page.goto('/mezzi/v-fiesta');
@@ -36,8 +36,9 @@ test('rifornimento e corsa completa: i numeri tornano', async ({ page }) => {
 
   await expect(page.getByText('100 km', { exact: true })).toBeVisible();
 
+  // Comprati 640 km, guidati 100: ne restano 540.
   await page.goto('/saldi');
-  await expect(page.getByText('60,75 €').first()).toBeVisible();
+  await expect(page.getByText('540 km di autonomia').first()).toBeVisible();
 });
 
 test('km non registrati: il rilevatore può dire che non sono suoi', async ({ page }) => {

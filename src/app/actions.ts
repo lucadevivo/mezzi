@@ -8,15 +8,12 @@ import { acceptInvite, createInvite } from '@/lib/auth/invites';
 import { requireAdmin, requireUser } from '@/lib/auth/session';
 import { getEnv } from '@/lib/env';
 import { completeDeadline, createDeadline } from '@/lib/services/deadlines';
-import { recordExpense, reverseExpense } from '@/lib/services/expenses';
 import { reverseRefuel, reverseTrip } from '@/lib/services/history';
 import {
-  notifySettlementToConfirm,
   notifyUnclaimedResolved,
   notifyUnclaimedTrip,
 } from '@/lib/services/notifications';
 import { removeSubscription, saveSubscription } from '@/lib/services/push';
-import { confirmSettlement, createSettlement } from '@/lib/services/settlements';
 import { recordRefuel } from '@/lib/services/refuels';
 import { checkOdometer, closeTrip, startTrip, takeOverOpenTrip } from '@/lib/services/trips';
 import { respondToUnclaimed } from '@/lib/services/unclaimed';
@@ -252,110 +249,14 @@ export async function respondUnclaimedAction(_prev: ActionState, formData: FormD
 
 /* ----------------------------------- spese ---------------------------------- */
 
-const expenseSchema = z.object({
-  vehicleId: z.string().min(1),
-  paidByUserId: z.string().min(1),
-  category: z.enum([
-    'assicurazione',
-    'bollo',
-    'revisione',
-    'tagliando',
-    'gomme',
-    'riparazione',
-    'altro',
-  ]),
-  amount: decimal,
-  date: z.string().optional(),
-  periodStart: z.string().optional(),
-  periodEnd: z.string().optional(),
-  splitRule: z.enum(['equal', 'by_km', 'none']),
-  note: z.string().trim().max(500).optional(),
-});
-
 const parseDay = (value?: string) => (value ? new Date(`${value}T12:00:00`) : null);
 
-export async function recordExpenseAction(
-  _prev: ActionState,
-  formData: FormData,
-): Promise<ActionState> {
-  await requireUser();
-  const parsed = expenseSchema.safeParse(Object.fromEntries(formData));
-  if (!parsed.success) return { error: 'Dati della spesa non validi' };
-
-  try {
-    recordExpense({
-      vehicleId: parsed.data.vehicleId,
-      paidByUserId: parsed.data.paidByUserId,
-      category: parsed.data.category,
-      amountCents: Math.round(parsed.data.amount * 100),
-      date: parseDay(parsed.data.date) ?? new Date(),
-      periodStart: parseDay(parsed.data.periodStart),
-      periodEnd: parseDay(parsed.data.periodEnd),
-      splitRule: parsed.data.splitRule,
-      note: parsed.data.note,
-    });
-  } catch (error) {
-    return fail(error);
-  }
-
-  revalidatePath('/spese');
-  revalidatePath('/saldi');
-  redirect('/spese');
-}
-
 /* --------------------------------- pareggi ---------------------------------- */
-
-const settlementSchema = z.object({
-  toUserId: z.string().min(1),
-  amount: decimal,
-  method: z.enum(['contanti', 'bonifico']),
-  note: z.string().trim().max(200).optional(),
-});
-
-export async function createSettlementAction(
-  _prev: ActionState,
-  formData: FormData,
-): Promise<ActionState> {
-  const me = await requireUser();
-  const parsed = settlementSchema.safeParse(Object.fromEntries(formData));
-  if (!parsed.success) return { error: 'Dati del pareggio non validi' };
-
-  const amountCents = Math.round(parsed.data.amount * 100);
-
-  try {
-    createSettlement({
-      fromUserId: me.id,
-      toUserId: parsed.data.toUserId,
-      amountCents,
-      method: parsed.data.method,
-      note: parsed.data.note,
-    });
-    await notifySettlementToConfirm(parsed.data.toUserId, me.id, amountCents);
-  } catch (error) {
-    return fail(error);
-  }
-
-  revalidatePath('/pareggi');
-  redirect('/pareggi');
-}
-
-export async function confirmSettlementAction(_prev: ActionState, formData: FormData) {
-  const me = await requireUser();
-  try {
-    confirmSettlement(String(formData.get('settlementId') ?? ''), me.id);
-  } catch (error) {
-    return fail(error);
-  }
-  revalidatePath('/pareggi');
-  revalidatePath('/saldi');
-  revalidatePath('/');
-  return {};
-}
 
 /* --------------------------------- storni ----------------------------------- */
 
 const reversalSchema = z.object({
-  kind: z.enum(['trip', 'refuel', 'expense']),
+  kind: z.enum(['trip', 'refuel']),
   id: z.string().min(1),
   reason: z.string().trim().min(3, 'Serve un motivo'),
 });
@@ -369,8 +270,7 @@ export async function reverseAction(_prev: ActionState, formData: FormData): Pro
   const { kind, id, reason } = parsed.data;
   try {
     if (kind === 'trip') reverseTrip(id, admin.id, reason);
-    else if (kind === 'refuel') reverseRefuel(id, admin.id, reason);
-    else reverseExpense(id, admin.id, reason);
+    else reverseRefuel(id, admin.id, reason);
   } catch (error) {
     return fail(error);
   }

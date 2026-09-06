@@ -1,19 +1,28 @@
 import { Card, EmptyState } from '@/components/ui';
 import { requireUser } from '@/lib/auth/session';
-import { formatEuro } from '@/lib/format';
-import { getSettlementPlan, listBalances } from '@/lib/services/balances';
+import { formatKm } from '@/lib/format';
+import { listBalances } from '@/lib/services/balances';
 import { claimStatsFor } from '@/lib/services/history';
 
 export const dynamic = 'force-dynamic';
 
+/** Il segno del saldo si legge a colpo d'occhio: rosso indietro, verde avanti. */
+function tono(km: number): string {
+  if (km < 0) return 'text-debt';
+  return km > 0 ? 'text-credit' : 'text-ink-dim';
+}
+
+function etichetta(km: number): string {
+  if (km < 0) return `${formatKm(-km)} da coprire`;
+  return km > 0 ? `${formatKm(km)} di autonomia` : 'in pari';
+}
+
 export default async function BalancesPage() {
   await requireUser();
   const balances = listBalances();
-  const plan = getSettlementPlan();
-  const nameOf = (id: string) => balances.find((b) => b.userId === id)?.name ?? '?';
 
   const billable = balances.filter((b) => b.billable);
-  const others = balances.filter((b) => !b.billable && b.balanceCents !== 0);
+  const others = balances.filter((b) => !b.billable && b.balanceKm !== 0);
 
   return (
     <div className="space-y-6">
@@ -23,18 +32,10 @@ export default async function BalancesPage() {
           const stats = claimStatsFor(b.userId);
           return (
             <Card key={b.userId} className="px-4 py-3">
-              <div className="flex items-center justify-between">
+              <div className="flex items-baseline justify-between gap-3">
                 <span className="font-medium">{b.name}</span>
-                <span
-                  className={`tabular text-lg ${
-                    b.balanceCents < 0
-                      ? 'text-debt'
-                      : b.balanceCents > 0
-                        ? 'text-credit'
-                        : 'text-ink-dim'
-                  }`}
-                >
-                  {formatEuro(b.balanceCents)}
+                <span className={`tabular text-lg ${tono(b.balanceKm)}`}>
+                  {etichetta(b.balanceKm)}
                 </span>
               </div>
               {/* Pubblica di proposito: chi nega sempre, alla lunga, si vede. */}
@@ -49,25 +50,12 @@ export default async function BalancesPage() {
         })}
       </section>
 
-      <section className="space-y-3">
-        <h2 className="text-[15px] font-semibold text-ink-dim">Chi deve cosa a chi</h2>
-        {plan.length === 0 ? (
-          <EmptyState title="Siete in pari" hint="Nessun passaggio di denaro necessario." />
-        ) : (
-          plan.map((t, i) => (
-            <Card key={`${t.from}-${t.to}-${i}`} className="px-4 py-3">
-              <p>
-                <span className="font-medium">{nameOf(t.from)}</span> deve{' '}
-                <span className="tabular text-accent">{formatEuro(t.amountCents)}</span> a{' '}
-                <span className="font-medium">{nameOf(t.to)}</span>
-              </p>
-            </Card>
-          ))
-        )}
-        <p className="text-xs text-ink-dim">
-          Quando pagate, registratelo in <span className="text-ink">Pareggi</span>: il saldo si
-          muove solo quando chi riceve conferma.
-        </p>
+      <section className="space-y-2">
+        <h2 className="text-[15px] font-semibold text-ink-dim">Come si pareggia</h2>
+        <EmptyState
+          title="Mettendo carburante"
+          hint="Chi è indietro rientra al distributore: i soldi che mette diventano chilometri. Non ci si passa denaro."
+        />
       </section>
 
       {others.length > 0 ? (
@@ -76,12 +64,9 @@ export default async function BalancesPage() {
           {others.map((b) => (
             <Card key={b.userId} className="flex items-center justify-between px-4 py-3">
               <span>{b.name}</span>
-              <span className="tabular text-ink-dim">{formatEuro(b.balanceCents)}</span>
+              <span className="tabular text-ink-dim">{etichetta(b.balanceKm)}</span>
             </Card>
           ))}
-          <p className="text-xs text-ink-dim">
-            Km registrati ed euro tracciati, ma non entrano nella ripartizione tra fratelli.
-          </p>
         </section>
       ) : null}
     </div>

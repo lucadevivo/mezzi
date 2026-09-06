@@ -1,18 +1,18 @@
 import { eq } from 'drizzle-orm';
-import { balances, refuelSuggestion, settlementPlan, type Cents } from '@/lib/billing';
+import { balances, refuelSuggestion } from '@/lib/billing';
 import { db } from '@/lib/db';
 import { ledgerEntries, user } from '@/lib/db/schema';
-import { getEnv } from '@/lib/env';
 
 export interface UserBalance {
   userId: string;
   name: string;
   color: string;
   billable: boolean;
-  balanceCents: Cents;
+  /** Positivo = autonomia già pagata. Negativo = km fatti e non ancora coperti. */
+  balanceKm: number;
 }
 
-function allBalances(): Map<string, Cents> {
+function allBalances(): Map<string, number> {
   return balances(
     db
       .select()
@@ -20,7 +20,7 @@ function allBalances(): Map<string, Cents> {
       .all()
       .map((row) => ({
         userId: row.userId,
-        amountCents: row.amountCents,
+        amountKm: row.amountKm,
         type: row.type,
         occurredAt: row.occurredAt,
       })),
@@ -39,34 +39,23 @@ export function listBalances(): UserBalance[] {
       name: row.name,
       color: row.color,
       billable: row.billable,
-      balanceCents: byUser.get(row.id) ?? 0,
+      balanceKm: byUser.get(row.id) ?? 0,
     }))
-    .sort((a, b) => a.balanceCents - b.balanceCents);
+    .sort((a, b) => a.balanceKm - b.balanceKm);
 }
 
-export function getBalance(userId: string): Cents {
+export function getBalance(userId: string): number {
   return allBalances().get(userId) ?? 0;
 }
 
-/** "Quanto devo mettere?" — la domanda per cui esiste l'app. */
-export function getRefuelSuggestion(userId: string, pricePerLiterCents?: number) {
-  return refuelSuggestion(
-    getBalance(userId),
-    pricePerLiterCents ?? getEnv().FALLBACK_FUEL_PRICE_CENTS,
-  );
-}
-
-/** Chi deve cosa a chi, solo tra utenti fatturabili: la nonna resta fuori. */
-export function getSettlementPlan() {
-  const billableIds = new Set(
-    db
-      .select({ id: user.id })
-      .from(user)
-      .where(eq(user.billable, true))
-      .all()
-      .map((r) => r.id),
-  );
-
-  const byUser = new Map([...allBalances()].filter(([id]) => billableIds.has(id)));
-  return settlementPlan(byUser);
+/**
+ * "Quanto devo mettere?" — la domanda per cui esiste l'app. Il debito è in
+ * chilometri, ma alla pompa servono euro: prezzo e consumo del mezzo fanno il resto.
+ */
+export function getRefuelSuggestion(
+  userId: string,
+  pricePerLiterCents: number,
+  kmPerLiter: number,
+) {
+  return refuelSuggestion(getBalance(userId), pricePerLiterCents, kmPerLiter);
 }

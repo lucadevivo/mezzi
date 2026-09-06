@@ -3,7 +3,6 @@ import { OfflineSync } from '@/components/offline-sync';
 import { TabBar } from '@/components/tab-bar';
 import { requireUser } from '@/lib/auth/session';
 import { scheduleMaintenance } from '@/lib/services/maintenance';
-import { pendingConfirmationsFor } from '@/lib/services/settlements';
 import { listPendingUnclaimed } from '@/lib/services/unclaimed';
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
@@ -14,10 +13,6 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   scheduleMaintenance();
 
   const pendingClaims = listPendingUnclaimed().length;
-  const pendingSettlements = pendingConfirmationsFor(user.id).length;
-  // Il badge di "Altro" conta solo i pareggi da confermare: le scadenze avvisano da
-  // sole con la notifica, e dall'elenco non ci si arriva piu'.
-  const elsewhere = pendingSettlements;
 
   return (
     <div className="mx-auto flex w-full max-w-md flex-1 flex-col">
@@ -42,7 +37,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <main className="flex-1 px-4 pb-[calc(84px+env(safe-area-inset-bottom))] pt-2">
         {children}
       </main>
-      <TabBar claims={pendingClaims} elsewhere={elsewhere} />
+      <TabBar claims={pendingClaims} />
     </div>
   );
 }

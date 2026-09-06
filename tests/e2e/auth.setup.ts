@@ -21,7 +21,7 @@ for (const { file, email, password } of CREDENTIALS) {
     await page.getByLabel('Email').fill(email);
     await page.getByLabel('Password').fill(password);
     await page.getByRole('button', { name: 'Entra' }).click();
-    await expect(page.getByText('Il tuo saldo')).toBeVisible();
+    await expect(page.getByText(/La tua autonomia|Chilometri da coprire/)).toBeVisible();
     await page.context().storageState({ path: file });
   });
 }

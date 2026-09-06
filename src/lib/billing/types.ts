@@ -25,18 +25,15 @@ export interface Refuel {
   refueledAt: Date;
 }
 
-export type LedgerType =
-  | 'consumption_charge'
-  | 'refuel_credit'
-  | 'expense_charge'
-  | 'expense_credit'
-  | 'settlement'
-  | 'adjustment';
+export type LedgerType = 'consumption_charge' | 'refuel_credit' | 'adjustment' | 'opening';
 
 export interface LedgerEntry {
   userId: UserId;
-  /** Negativo = addebito, positivo = accredito. */
-  amountCents: Cents;
+  /**
+   * Chilometri: negativi se guidati, positivi se comprati col carburante.
+   * Il saldo dell'app è autonomia, non denaro — vedi `balances`.
+   */
+  amountKm: number;
   type: LedgerType;
   occurredAt: Date;
 }

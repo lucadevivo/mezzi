@@ -1,9 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { balances, ledgerTotal, unconsumedFuelValueCents } from './balance';
+import { autonomyInTankKm, balances, kmBought, ledgerTotalKm } from './balance';
 import { evaluateOdometerReading } from './discrepancy';
-import { splitCentsAmong } from './money';
 import { referencePrice, tankState, type TankEvent } from './price';
-import { splitTripCost, tripCost } from './trip';
+import { splitTripKm, tripCost } from './trip';
 import { resolveUnclaimed } from './unclaimed';
 import type { LedgerEntry, Refuel } from './types';
 
@@ -25,8 +24,8 @@ describe('invarianti su uno scenario completo', () => {
     const tankEvents: TankEvent[] = [];
     const kmByUser = new Map<string, number>();
 
-    const charge = (userId: string, cents: number, at: Date) => {
-      ledger.push({ userId, amountCents: -cents, type: 'consumption_charge', occurredAt: at });
+    const charge = (userId: string, km: number, at: Date) => {
+      ledger.push({ userId, amountKm: -km, type: 'consumption_charge', occurredAt: at });
     };
     const addKm = (userId: string, km: number) => {
       kmByUser.set(userId, (kmByUser.get(userId) ?? 0) + km);
@@ -41,9 +40,10 @@ describe('invarianti su uno scenario completo', () => {
       tankFractionAfter: null,
       refueledAt: day(1),
     };
+    // Non gli si accreditano euro: gli si accredita l'autonomia che quei litri fanno.
     ledger.push({
       userId: 'luca',
-      amountCents: refuel.liters * refuel.pricePerLiterCents,
+      amountKm: kmBought(refuel.liters, DECLARED_KM_PER_LITER),
       type: 'refuel_credit',
       occurredAt: day(1),
     });
@@ -61,7 +61,7 @@ describe('invarianti su uno scenario completo', () => {
         consumptionKmPerLiter: DECLARED_KM_PER_LITER,
         unitPriceCents: price.pricePerLiterCents,
       });
-      for (const [id, share] of splitTripCost(costCents, userId, passengers)) charge(id, share, at);
+      for (const [id, km] of splitTripKm(distanceKm, userId, passengers)) charge(id, km, at);
       tankEvents.push({ kind: 'consumption', at, liters: litersEstimated });
       addKm(userId, distanceKm);
       return costCents;
@@ -108,8 +108,8 @@ describe('invarianti su uno scenario completo', () => {
     expect(resolution).toEqual({ status: 'split', chargedTo: ['marco', 'giulia'] });
     if (resolution.status !== 'split') throw new Error('scenario incoerente');
 
-    for (const [id, share] of splitCentsAmong(unclaimedCost.costCents, resolution.chargedTo)) {
-      charge(id, share, detectedAt);
+    for (const [id, km] of splitTripKm(150, resolution.chargedTo[0], resolution.chargedTo)) {
+      charge(id, km, detectedAt);
     }
     tankEvents.push({ kind: 'consumption', at: detectedAt, liters: unclaimedCost.litersEstimated });
     // I km restano attribuiti a chi li paga: è così che il totale torna col contachilometri.
@@ -140,12 +140,12 @@ describe('invarianti su uno scenario completo', () => {
     };
   }
 
-  it('la somma dei saldi vale il carburante pagato e non ancora consumato', () => {
+  it('la somma dei saldi vale i chilometri che il carburante in serbatoio può ancora fare', () => {
     const { ledger, tankEvents } = buildScenario();
     const tank = tankState(tankEvents, TANK_CAPACITY_L);
 
-    expect(ledgerTotal(ledger)).toBe(
-      unconsumedFuelValueCents(tank.litersInTank, tank.avgPriceCents),
+    expect(ledgerTotalKm(ledger)).toBe(
+      autonomyInTankKm(tank.litersInTank, DECLARED_KM_PER_LITER),
     );
   });
 
@@ -164,6 +164,6 @@ describe('invarianti su uno scenario completo', () => {
     expect(userBalances.get('nonna')).toBeLessThan(0);
 
     const brothersTotal = billableMembers.reduce((sum, id) => sum + (userBalances.get(id) ?? 0), 0);
-    expect(brothersTotal).not.toBe(ledgerTotal(ledger));
+    expect(brothersTotal).not.toBe(ledgerTotalKm(ledger));
   });
 });
