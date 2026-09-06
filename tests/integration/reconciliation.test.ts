@@ -57,7 +57,7 @@ describe('riconciliazione al pieno', () => {
       pricePerLiterCents: 180,
       totalCents: 7200,
       odometerKm: 0,
-      tankLevelAfter: 'full',
+      tankFractionAfter: 1,
       refueledAt: new Date(2026, 6, 1),
     });
 
@@ -85,7 +85,7 @@ describe('riconciliazione al pieno', () => {
       pricePerLiterCents: 180,
       totalCents: 4500,
       odometerKm: 320,
-      tankLevelAfter: 'full',
+      tankFractionAfter: 1,
       refueledAt: new Date(2026, 6, 10),
     });
 
@@ -113,7 +113,7 @@ describe('riconciliazione al pieno', () => {
       pricePerLiterCents: 180,
       totalCents: 1800,
       odometerKm: 320,
-      tankLevelAfter: 'full',
+      tankFractionAfter: 1,
       refueledAt: new Date(2026, 6, 11),
     });
 

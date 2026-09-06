@@ -48,7 +48,7 @@ function toRefuelModel(row: typeof refuels.$inferSelect): Refuel {
     liters: row.liters,
     pricePerLiterCents: row.pricePerLiterCents,
     odometerKm: row.odometerKm,
-    tankLevelAfter: row.tankLevelAfter,
+    tankFractionAfter: row.tankFractionAfter,
     refueledAt: row.refueledAt,
   };
 }

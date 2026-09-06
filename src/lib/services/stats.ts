@@ -1,5 +1,5 @@
 import { and, eq, gte, lte } from 'drizzle-orm';
-import { fullTankSamples } from '@/lib/billing';
+import { fullTankSamples, TANK_FULL } from '@/lib/billing';
 import { db } from '@/lib/db';
 import { refuels, trips, user, vehicles } from '@/lib/db/schema';
 
@@ -128,12 +128,12 @@ export function consumptionTrend(vehicleId: string): ConsumptionPoint[] {
       liters: row.liters,
       pricePerLiterCents: row.pricePerLiterCents,
       odometerKm: row.odometerKm,
-      tankLevelAfter: row.tankLevelAfter,
+      tankFractionAfter: row.tankFractionAfter,
       refueledAt: row.refueledAt,
     }));
 
   const fulls = rows
-    .filter((r) => r.tankLevelAfter === 'full')
+    .filter((r) => r.tankFractionAfter === TANK_FULL)
     .sort((a, b) => a.odometerKm - b.odometerKm);
 
   return fullTankSamples(rows).map((kmPerLiter, index) => ({

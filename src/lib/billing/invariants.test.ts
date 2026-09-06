@@ -38,7 +38,7 @@ describe('invarianti su uno scenario completo', () => {
       liters: 40,
       pricePerLiterCents: 180,
       odometerKm: START_ODOMETER_KM,
-      tankLevelAfter: null,
+      tankFractionAfter: null,
       refueledAt: day(1),
     };
     ledger.push({

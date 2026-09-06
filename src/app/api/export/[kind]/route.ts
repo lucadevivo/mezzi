@@ -82,7 +82,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ kin
         centsToEuro(refuel.pricePerLiterCents),
         centsToEuro(refuel.totalCents),
         refuel.odometerKm,
-        refuel.tankLevelAfter === 'full' ? 'sì' : 'no',
+        refuel.tankFractionAfter === 1 ? 'sì' : 'no',
       ]);
       break;
 

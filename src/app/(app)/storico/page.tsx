@@ -5,7 +5,7 @@ import { Card, EmptyState } from '@/components/ui';
 import { requireUser } from '@/lib/auth/session';
 import { db } from '@/lib/db';
 import { user as userTable } from '@/lib/db/schema';
-import { formatDateTime, formatEuro, formatKm, formatLiters } from '@/lib/format';
+import { formatDateTime, formatEuro, formatKm, formatLiters, formatTank } from '@/lib/format';
 import { listAllRefuels, listTrips } from '@/lib/services/history';
 import { listVehicles } from '@/lib/services/vehicles';
 
@@ -108,7 +108,7 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
               <p className="mt-1 text-sm text-ink-dim">
                 {vehicleOf(row.vehicleId)?.name} · {formatDateTime(at)} ·{' '}
                 {formatEuro(row.pricePerLiterCents)}/l
-                {row.tankLevelAfter === 'full' ? ' · pieno' : ''}
+                {row.tankFractionAfter === null ? '' : ` · ${formatTank(row.tankFractionAfter)}`}
               </p>
             </>
           )}

@@ -16,7 +16,8 @@ test('rifornimento e corsa completa: i numeri tornano', async ({ page }) => {
   await page.getByLabel('Contachilometri', { exact: true }).fill('100000');
   await page.getByLabel('Litri').fill('40');
   await page.getByLabel('€ al litro').fill('1,80');
-  await page.getByRole('button', { name: 'Pieno' }).click();
+  // La lancetta si trascina: qui la si porta al fondo scala, cioe' al pieno.
+  await page.getByLabel('Livello del serbatoio dopo il rifornimento').fill('1');
   await page.getByRole('button', { name: 'Registra il rifornimento' }).click();
 
   await expect(page.getByText('100.000 km', { exact: true })).toBeVisible();

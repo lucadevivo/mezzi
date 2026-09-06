@@ -9,22 +9,19 @@ export type Cents = number;
 export type UserId = string;
 export type VehicleId = string;
 
-export type TankLevel = 'quarter' | 'half' | 'three_quarters' | 'full';
-
-export const TANK_LEVEL_FRACTION: Record<TankLevel, number> = {
-  quarter: 0.25,
-  half: 0.5,
-  three_quarters: 0.75,
-  full: 1,
-};
+/** Il pieno: unico valore che abilita la calibrazione pieno-a-pieno. */
+export const TANK_FULL = 1;
 
 export interface Refuel {
   id: string;
   liters: number;
   pricePerLiterCents: Cents;
   odometerKm: number;
-  /** Livello raggiunto dopo il rifornimento. `full` abilita la calibrazione pieno-a-pieno. */
-  tankLevelAfter: TankLevel | null;
+/**
+   * Dove sta la lancetta dopo il rifornimento, da 0 (riserva) a 1 (pieno). `null` = non
+   * guardata. Una frazione e non quattro caselle: la lancetta vera non si ferma sui quarti.
+   */
+  tankFractionAfter: number | null;
   refueledAt: Date;
 }
 

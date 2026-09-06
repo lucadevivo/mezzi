@@ -183,7 +183,12 @@ const refuelSchema = z.object({
   liters: optionalDecimal,
   pricePerLiter: optionalDecimal,
   total: optionalDecimal,
-  tankLevelAfter: z.enum(['quarter', 'half', 'three_quarters', 'full']).nullable().catch(null),
+  tankFractionAfter: z
+    .string()
+    .trim()
+    .transform((value) => (value === '' ? null : Number(value)))
+    .pipe(z.number().min(0).max(1).nullable())
+    .catch(null),
   stationName: z.string().trim().max(100).optional(),
   conferma: z.string().optional(),
 });
@@ -209,7 +214,7 @@ export async function recordRefuelAction(
       vehicleId,
       userId: payerId,
       odometerKm,
-      tankLevelAfter: parsed.data.tankLevelAfter,
+      tankFractionAfter: parsed.data.tankFractionAfter,
       stationName: parsed.data.stationName,
       confirmOverCapacity: parsed.data.conferma === 'si',
       ...amounts,

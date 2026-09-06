@@ -40,3 +40,18 @@ export function formatRemaining(deadline: Date, now = new Date()): string {
   if (hours < 48) return `${hours} h`;
   return `${Math.floor(hours / 24)} giorni`;
 }
+
+/**
+ * La lancetta del serbatoio a parole. Gli ottavi sono le tacche che si vedono
+ * davvero sul cruscotto: dire "0,63" a chi guarda uno strumento analogico
+ * sarebbe una precisione finta.
+ */
+export function formatTank(fraction: number | null): string {
+  if (fraction === null) return 'non guardata';
+  if (fraction >= 1) return 'pieno';
+  if (fraction <= 0) return 'in riserva';
+  const eighths = Math.round(fraction * 8);
+  if (eighths === 4) return 'mezzo serbatoio';
+  if (eighths === 0) return 'quasi in riserva';
+  return `${eighths}/8`;
+}

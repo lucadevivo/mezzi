@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { desc, eq } from 'drizzle-orm';
-import { resolveConsumption, type TankLevel } from '@/lib/billing';
+import { resolveConsumption, TANK_FULL } from '@/lib/billing';
 import { db } from '@/lib/db';
 import { refuels, vehicles } from '@/lib/db/schema';
 import { logAudit } from './audit';
@@ -18,7 +18,7 @@ export interface RecordRefuelInput {
   pricePerLiterCents: number;
   totalCents: number;
   odometerKm: number;
-  tankLevelAfter: TankLevel | null;
+  tankFractionAfter: number | null;
   stationName?: string | null;
   refueledAt?: Date;
   /** L'utente ha confermato di aver messo più litri della capacità dichiarata. */
@@ -53,7 +53,7 @@ export function recordRefuel(input: RecordRefuelInput): { refuelId: string } {
         pricePerLiterCents: input.pricePerLiterCents,
         totalCents: input.totalCents,
         odometerKm: input.odometerKm,
-        tankLevelAfter: input.tankLevelAfter,
+        tankFractionAfter: input.tankFractionAfter,
         stationName: input.stationName ?? null,
         refueledAt,
       })
@@ -97,7 +97,7 @@ export function recordRefuel(input: RecordRefuelInput): { refuelId: string } {
   recomputeConsumption(input.vehicleId);
   // Un pieno dice quanto carburante è stato davvero bruciato dal pieno precedente:
   // è il momento in cui la stima si può correggere con un dato vero.
-  if (input.tankLevelAfter === 'full') reconcileAfterFullTank(refuelId, refueledAt);
+  if (input.tankFractionAfter === TANK_FULL) reconcileAfterFullTank(refuelId, refueledAt);
 
   return { refuelId };
 }
@@ -117,7 +117,7 @@ export function recomputeConsumption(vehicleId: string): number | null {
       liters: row.liters,
       pricePerLiterCents: row.pricePerLiterCents,
       odometerKm: row.odometerKm,
-      tankLevelAfter: row.tankLevelAfter,
+      tankFractionAfter: row.tankFractionAfter,
       refueledAt: row.refueledAt,
     })),
     vehicle.declaredConsumptionKmL,

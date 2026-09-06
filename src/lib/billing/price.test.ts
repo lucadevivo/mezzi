@@ -1,19 +1,19 @@
 import { describe, expect, it } from 'vitest';
 import { referencePrice, tankState, type TankEvent } from './price';
-import type { Refuel, TankLevel } from './types';
+import type { Refuel } from './types';
 
 function refuelEvent(
   at: Date,
   liters: number,
   pricePerLiterCents: number,
-  tankLevelAfter: TankLevel | null = null,
+  tankFractionAfter: number | null = null,
 ): TankEvent {
   const refuel: Refuel = {
     id: `r-${at.getTime()}`,
     liters,
     pricePerLiterCents,
     odometerKm: 0,
-    tankLevelAfter,
+    tankFractionAfter,
     refueledAt: at,
   };
   return { kind: 'refuel', at, refuel };
@@ -46,7 +46,7 @@ describe('tankState', () => {
   });
 
   it('usa il livello dichiarato come ancora, più affidabile della stima', () => {
-    const state = tankState([refuelEvent(day(1), 5, 180, 'full')], 45);
+    const state = tankState([refuelEvent(day(1), 5, 180, 1)], 45);
     expect(state.litersInTank).toBe(45);
     expect(state.estimated).toBe(false);
   });
@@ -89,12 +89,14 @@ describe('referencePrice', () => {
 });
 
 describe('referencePrice — corse che precedono ogni rifornimento', () => {
-  const refuel = {
+  const refuel: Refuel = {
+    id: 'r-1',
     liters: 10,
     pricePerLiterCents: 210,
-    totalCents: 2100,
-    tankLevelAfter: null,
-  } as const;
+    odometerKm: 1000,
+    tankFractionAfter: null,
+    refueledAt: new Date('2026-08-01T10:00:00Z'),
+  };
 
   it('usa il primo rifornimento noto invece del valore di ripiego', () => {
     const result = referencePrice({

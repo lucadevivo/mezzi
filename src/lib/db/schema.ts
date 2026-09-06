@@ -284,10 +284,8 @@ export const refuels = sqliteTable(
     pricePerLiterCents: integer('price_per_liter_cents').notNull(),
     totalCents: integer('total_cents').notNull(),
     odometerKm: real('odometer_km').notNull(),
-    /** Livello raggiunto: `full` abilita la calibrazione pieno-a-pieno. */
-    tankLevelAfter: text('tank_level_after', {
-      enum: ['quarter', 'half', 'three_quarters', 'full'],
-    }),
+    /** Dove sta la lancetta dopo il rifornimento, 0-1. `1` (pieno) abilita la calibrazione. */
+    tankFractionAfter: real('tank_fraction_after'),
     stationName: text('station_name'),
     refueledAt: timestamp('refueled_at').notNull(),
     receiptPhotoPath: text('receipt_photo_path'),

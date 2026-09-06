@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from 'react';
 import { recordRefuelAction, type ActionState } from '@/app/actions';
+import { TankGauge } from '@/components/tank-gauge';
 import { ErrorBanner, Field, NumberInput, PrimaryButton, TextInput } from '@/components/ui';
 import { formatKm } from '@/lib/format';
 
@@ -10,13 +11,6 @@ export interface PayerOption {
   name: string;
   billable: boolean;
 }
-
-const LEVELS = [
-  { value: 'quarter', label: '1/4' },
-  { value: 'half', label: '1/2' },
-  { value: 'three_quarters', label: '3/4' },
-  { value: 'full', label: 'Pieno' },
-] as const;
 
 /**
  * Dei tre valori (litri, €/litro, totale) ne bastano due: il terzo si ricava al salvataggio.
@@ -37,7 +31,8 @@ export function RefuelForm({
     recordRefuelAction,
     {},
   );
-  const [level, setLevel] = useState<string>('full');
+  // Di suo nessuno dichiara niente: il livello lo si segna solo se lo si è guardato.
+  const [tank, setTank] = useState<number | null>(null);
   // Controllati: un warning da confermare non deve cancellare quello che hai appena
   // battuto con una mano sola davanti alla pompa.
   const [odometer, setOdometer] = useState(String(Math.round(currentOdometerKm)));
@@ -48,7 +43,6 @@ export function RefuelForm({
   return (
     <form action={formAction} className="space-y-4">
       <input type="hidden" name="vehicleId" value={vehicleId} />
-      <input type="hidden" name="tankLevelAfter" value={level} />
 
       <Field label="Contachilometri" hint={`Ultimo valore: ${formatKm(currentOdometerKm)}`}>
         <NumberInput
@@ -87,29 +81,7 @@ export function RefuelForm({
         />
       </Field>
 
-      <fieldset>
-        <legend className="mb-2 text-sm text-ink-dim">Serbatoio dopo il rifornimento</legend>
-        <div className="grid grid-cols-4 gap-2">
-          {LEVELS.map((option) => (
-            <button
-              key={option.value}
-              type="button"
-              onClick={() => setLevel(option.value)}
-              aria-pressed={level === option.value}
-              className={`min-h-12 rounded-2xl border text-base font-medium ${
-                level === option.value
-                  ? 'border-accent bg-accent text-accent-ink'
-                  : 'border-line bg-surface-2 text-ink'
-              }`}
-            >
-              {option.label}
-            </button>
-          ))}
-        </div>
-        <p className="mt-1 text-xs text-ink-dim">
-          Solo i pieni permettono di ricalibrare il consumo reale.
-        </p>
-      </fieldset>
+      <TankGauge name="tankFractionAfter" value={tank} onChange={setTank} />
 
       <Field label="Chi ha pagato">
         <select

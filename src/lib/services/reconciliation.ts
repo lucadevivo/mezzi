@@ -1,5 +1,5 @@
 import { and, desc, eq, gt, lte } from 'drizzle-orm';
-import { reconcileConsumption } from '@/lib/billing';
+import { reconcileConsumption, TANK_FULL } from '@/lib/billing';
 import { db } from '@/lib/db';
 import { refuels, trips } from '@/lib/db/schema';
 import { logAudit } from './audit';
@@ -28,7 +28,7 @@ export function reconcileAfterFullTank(
   tx: Db = db,
 ): ReconciliationResult {
   const current = tx.select().from(refuels).where(eq(refuels.id, refuelId)).get();
-  if (!current || current.tankLevelAfter !== 'full') {
+  if (!current || current.tankFractionAfter !== TANK_FULL) {
     return { applied: false, deltaLiters: 0, reason: 'no_previous_full' };
   }
 
@@ -38,7 +38,7 @@ export function reconcileAfterFullTank(
     .where(
       and(
         eq(refuels.vehicleId, current.vehicleId),
-        eq(refuels.tankLevelAfter, 'full'),
+        eq(refuels.tankFractionAfter, TANK_FULL),
         lte(refuels.odometerKm, current.odometerKm),
       ),
     )

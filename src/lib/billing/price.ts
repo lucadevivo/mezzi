@@ -1,5 +1,5 @@
 import { roundCents } from './money';
-import { TANK_LEVEL_FRACTION, type Cents, type ReferencePrice, type Refuel } from './types';
+import { TANK_FULL, type Cents, type ReferencePrice, type Refuel } from './types';
 
 /** Un evento che tocca il serbatoio: un rifornimento lo riempie, una corsa lo svuota. */
 export type TankEvent =
@@ -17,7 +17,7 @@ export interface TankState {
  * Ricostruisce il contenuto del serbatoio come pool a media ponderata: ogni rifornimento
  * mescola litri nuovi a un prezzo nuovo, ogni corsa brucia litri al prezzo medio corrente.
  *
- * Non esiste un sensore di livello: quando un rifornimento dichiara `tankLevelAfter`,
+ * Non esiste un sensore di livello: quando un rifornimento dice dov'è la lancetta,
  * quel valore è più affidabile della nostra stima e viene usato come ancora.
  */
 export function tankState(
@@ -37,14 +37,14 @@ export function tankState(
       continue;
     }
 
-    const { liters: added, pricePerLiterCents, tankLevelAfter } = event.refuel;
+    const { liters: added, pricePerLiterCents, tankFractionAfter } = event.refuel;
     const total = liters + added;
     avg = total > 0 ? (liters * avg + added * pricePerLiterCents) / total : pricePerLiterCents;
     liters = total;
 
-    if (tankLevelAfter) {
-      liters = TANK_LEVEL_FRACTION[tankLevelAfter] * tankCapacityL;
-      estimated = tankLevelAfter !== 'full' ? estimated : false;
+    if (tankFractionAfter !== null) {
+      liters = tankFractionAfter * tankCapacityL;
+      estimated = tankFractionAfter === TANK_FULL ? false : estimated;
     }
   }
 

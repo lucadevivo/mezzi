@@ -1,4 +1,4 @@
-import type { Consumption, Refuel } from './types';
+import { TANK_FULL, type Consumption, type Refuel } from './types';
 
 export interface ConsumptionOptions {
   /** Quanti campioni recenti considerare per la media mobile. */
@@ -18,7 +18,7 @@ const DEFAULTS = { window: 5, outlierTolerance: 0.3, minSamples: 3 } as const;
  */
 export function fullTankSamples(refuels: readonly Refuel[]): number[] {
   const fulls = refuels
-    .filter((r) => r.tankLevelAfter === 'full')
+    .filter((r) => r.tankFractionAfter === TANK_FULL)
     .sort((a, b) => a.odometerKm - b.odometerKm);
 
   const samples: number[] = [];
