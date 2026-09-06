@@ -34,7 +34,7 @@ export default async function HomePage() {
         <p className="text-sm text-ink-dim">Il tuo saldo</p>
         <p
           className={`tabular mt-0.5 text-[40px] font-semibold leading-none ${
-            balanceCents < 0 ? 'text-debt' : 'text-credit'
+            balanceCents < 0 ? 'text-debt' : 'text-ink'
           }`}
         >
           {formatEuro(balanceCents)}
@@ -49,7 +49,7 @@ export default async function HomePage() {
         ) : null}
         {cards.map(({ vehicle, openTrip, driver }) => (
           <Link key={vehicle.id} href={`/mezzi/${vehicle.id}`} className="block">
-            <Card accent={vehicle.color} className="px-4 py-3">
+            <Card className="px-4 py-3">
               <div className="flex items-baseline justify-between gap-3">
                 <span className="text-lg font-semibold">{vehicle.name}</span>
                 <span className={`text-sm ${openTrip ? 'text-accent' : 'text-ink-dim'}`}>

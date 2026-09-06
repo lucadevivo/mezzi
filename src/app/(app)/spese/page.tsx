@@ -46,7 +46,7 @@ export default async function ExpensesPage() {
           />
         ) : null}
         {expenses.map((expense) => (
-          <Card key={expense.id} accent={vehicleOf(expense.vehicleId)?.color} className="px-4 py-3">
+          <Card key={expense.id} className="px-4 py-3">
             <div className="flex items-baseline justify-between gap-3">
               <span className="font-medium capitalize">{expense.category}</span>
               <span className="tabular text-lg">{formatEuro(expense.amountCents)}</span>

@@ -40,7 +40,7 @@ export default async function StatsPage() {
       </div>
 
       {mostUsed ? (
-        <Card accent={mostUsed.color} className="px-4 py-4">
+        <Card className="px-4 py-4">
           <p className="text-sm text-ink-dim">Il mezzo più usato del mese</p>
           <p className="mt-1 text-2xl font-semibold">{mostUsed.name}</p>
           <p className="tabular mt-1 text-ink-dim">
@@ -90,7 +90,7 @@ export default async function StatsPage() {
       <section className="space-y-3">
         <h2 className="text-[15px] font-semibold text-ink-dim">Costo medio al km</h2>
         {byVehicle.map((vehicle) => (
-          <Card key={vehicle.vehicleId} accent={vehicle.color} className="px-4 py-3">
+          <Card key={vehicle.vehicleId} className="px-4 py-3">
             <div className="flex items-baseline justify-between gap-3">
               <span className="font-medium">{vehicle.name}</span>
               <span className="tabular">
@@ -117,7 +117,7 @@ export default async function StatsPage() {
           />
         ) : null}
         {trends.map(({ vehicle, trend }) => (
-          <Card key={vehicle.vehicleId} accent={vehicle.color} className="px-4 py-4">
+          <Card key={vehicle.vehicleId} className="px-4 py-4">
             <p className="mb-2 font-medium">{vehicle.name}</p>
             <TrendChart
               color={vehicle.color}

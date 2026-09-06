@@ -57,7 +57,7 @@ export default async function ClaimsPage() {
         const resolution = row.status === 'pending' ? currentResolution(row, now) : null;
 
         return (
-          <Card key={row.id} accent={vehicle?.color} className="space-y-3 px-4 py-4">
+          <Card key={row.id} className="space-y-3 px-4 py-4">
             <div>
               <p className="font-semibold">
                 {vehicle?.name} — {formatKm(row.distanceKm)} non registrati
@@ -92,7 +92,7 @@ export default async function ClaimsPage() {
                   {responses.map((r) => (
                     <li key={r.id} className="flex justify-between">
                       <span>{names.get(r.userId) ?? '?'}</span>
-                      <span className={r.answer === 'mine' ? 'text-credit' : 'text-ink-dim'}>
+                      <span className={r.answer === 'mine' ? 'text-ink' : 'text-ink-dim'}>
                         {r.answer === 'mine' ? 'sono miei' : 'non sono miei'}
                       </span>
                     </li>

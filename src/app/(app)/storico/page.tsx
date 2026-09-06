@@ -81,7 +81,7 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
       ) : null}
 
       {entries.map(({ kind, at, row }) => (
-        <Card key={row.id} accent={vehicleOf(row.vehicleId)?.color} className="px-4 py-3">
+        <Card key={row.id} className="px-4 py-3">
           {kind === 'trip' ? (
             <>
               <div className="flex items-baseline justify-between gap-3">
@@ -103,7 +103,7 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
                 <span className="font-medium">
                   {nameOf(row.userId)} · rifornimento {formatLiters(row.liters)}
                 </span>
-                <span className="tabular text-lg text-credit">{formatEuro(row.totalCents)}</span>
+                <span className="tabular text-lg text-ink">{formatEuro(row.totalCents)}</span>
               </div>
               <p className="mt-1 text-sm text-ink-dim">
                 {vehicleOf(row.vehicleId)?.name} · {formatDateTime(at)} ·{' '}

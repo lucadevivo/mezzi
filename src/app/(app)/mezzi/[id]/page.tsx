@@ -37,7 +37,7 @@ export default async function VehiclePage({ params }: { params: Promise<{ id: st
 
   return (
     <div className="space-y-5">
-      <Card accent={vehicle.color} className="px-4 py-4">
+      <Card className="px-4 py-4">
         <h1 className="text-xl font-semibold">{vehicle.name}</h1>
         <p className="tabular mt-1 text-3xl">{formatKm(vehicle.currentOdometerKm)}</p>
         <dl className="mt-3 grid grid-cols-2 gap-2 text-sm text-ink-dim">

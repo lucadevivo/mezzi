@@ -22,7 +22,7 @@ export default async function BalancesPage() {
         {billable.map((b) => {
           const stats = claimStatsFor(b.userId);
           return (
-            <Card key={b.userId} accent={b.color} className="px-4 py-3">
+            <Card key={b.userId} className="px-4 py-3">
               <div className="flex items-center justify-between">
                 <span className="font-medium">{b.name}</span>
                 <span
@@ -30,7 +30,7 @@ export default async function BalancesPage() {
                     b.balanceCents < 0
                       ? 'text-debt'
                       : b.balanceCents > 0
-                        ? 'text-credit'
+                        ? 'text-ink'
                         : 'text-ink-dim'
                   }`}
                 >

@@ -62,18 +62,21 @@ anche il vetro**.
 
 - **Palette = modalità scura dell'app dei turni** (`~/Progetti/turn-creation-screen`): neutri puri,
   croma zero. `base #0a0a0a`, `ink oklch(0.985 0 0)`, `ink-dim oklch(0.708 0 0)`, azione primaria
-  `accent oklch(0.922 0 0)` (quasi bianca, testo scuro sopra), `debt` = destructive dei turni.
-  Il `credit` verde non esiste nei turni: è stato aggiunto tenendo la stessa croma del rosso, così
-  debito e credito pesano uguale. `surface` e `surface-2` sono bianchi trasparenti che sul fondo
-  cadono esattamente sui grigi dei turni (0.205 e 0.269).
+  `accent oklch(0.922 0 0)` (quasi bianca, testo scuro sopra). `surface` e `surface-2` sono bianchi
+  trasparenti che sul fondo cadono esattamente sui grigi dei turni (0.205 e 0.269).
+- **Un solo colore vivo in tutta l'app**: `debt`, il rosso di sistema dei turni. Si accende solo
+  quando si deve davvero qualcosa. Non esiste un verde per il credito — il credito è bianco — e le
+  card non portano più la tinta identitaria di mezzi e utenti: su un fondo neutro stonavano, e il
+  rosso conserva il suo peso proprio perché è solo. I colori restano nel DB e li usano i grafici.
+- **Niente luci d'ambiente**: il fondo è nero pieno. Il blur di `.glass` resta dove serve davvero,
+  cioè sotto la tab bar e i pulsanti che galleggiano sopra il contenuto che scorre.
 - Due classi in `@layer components`: `.glass` (blur + saturate + bordo chiaro in alto come riflesso
   speculare) e `.glass-2` per i livelli interni, senza un secondo blur — sarebbe GPU sprecata.
   Stanno in `@layer components` apposta: le utility Tailwind devono poterle sovrascrivere.
-- Font: **stack di sistema**, che su iPhone è SF Pro vero. Nessun font di rete somiglia a iOS
-  quanto il font di iOS, e non si scarica niente.
-- **I numeri vanno in grazie**: `.tabular` usa `ui-serif` (New York su iPhone, Georgia altrove) con
-  `lining-nums tabular-nums`. Un contachilometri è uno strumento, non un terminale; il `lining`
-  serve perché Georgia di suo scriverebbe cifre minuscole.
+- Font: **Geist e Geist Mono**, gli stessi dell'app delle pizze (`~/Progetti/pizza-delivery-app`),
+  serviti da `next/font` dal nostro dominio: nessuna chiamata a Google a runtime, la PWA regge
+  anche senza rete. I numeri (`.tabular`) vanno in Geist Mono con `lining-nums tabular-nums`:
+  cifre di uguale larghezza, il contachilometri non balla.
 - Raggi larghi (`--radius-card: 22px`, controlli `rounded-2xl`), titolone `.title-lg` da 34px.
 - Ogni mezzo tinge la sua card (bordo + sfumatura diagonale dal lato), **non** una banda sul
   fianco: sbagliare mezzo è l'errore più probabile dell'app e a colpo d'occhio deve essere

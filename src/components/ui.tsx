@@ -5,35 +5,8 @@ const CARD = 'glass rounded-[var(--radius-card)] relative overflow-hidden';
 const CONTROL =
   'w-full rounded-2xl glass-2 px-4 text-ink transition-[border-color,background-color] focus:border-accent/60 focus:outline-none';
 
-export function Card({
-  children,
-  accent,
-  className = '',
-}: {
-  children: ReactNode;
-  /** Colore identitario del mezzo: sbagliare mezzo è l'errore più probabile dell'app. */
-  accent?: string;
-  className?: string;
-}) {
-  return (
-    <div
-      className={`${CARD} ${className}`}
-      /*
-       * Il colore del mezzo tinge la lastra e il suo bordo invece di stare in una
-       * banda sul fianco: sul vetro la luce arriva da un lato, non a strisce.
-       */
-      style={
-        accent
-          ? {
-              borderColor: `${accent}4d`,
-              backgroundImage: `linear-gradient(103deg, ${accent}1f, transparent 44%)`,
-            }
-          : undefined
-      }
-    >
-      {children}
-    </div>
-  );
+export function Card({ children, className = '' }: { children: ReactNode; className?: string }) {
+  return <div className={`${CARD} ${className}`}>{children}</div>;
 }
 
 export function PrimaryButton({ className = '', ...props }: ComponentProps<'button'>) {

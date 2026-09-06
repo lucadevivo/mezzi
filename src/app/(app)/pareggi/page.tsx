@@ -51,7 +51,7 @@ export default async function SettlementsPage() {
               <p className="mt-1 text-sm text-ink-dim">
                 {formatDay(s.date)} · {s.method} ·{' '}
                 {s.confirmedByRecipient ? (
-                  <span className="text-credit">confermato</span>
+                  <span className="text-ink">confermato</span>
                 ) : (
                   <span className="text-accent">in attesa di conferma</span>
                 )}

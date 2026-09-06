@@ -30,7 +30,7 @@ export default async function AdminPage() {
       <section className="space-y-3">
         <h2 className="text-[15px] font-semibold text-ink-dim">Utenti</h2>
         {users.map((u) => (
-          <Card key={u.id} accent={u.color} className="flex items-center justify-between px-4 py-3">
+          <Card key={u.id} className="flex items-center justify-between px-4 py-3">
             <span>{u.name}</span>
             <span className="text-sm text-ink-dim">
               {u.role === 'admin' ? 'admin · ' : ''}
@@ -44,7 +44,7 @@ export default async function AdminPage() {
       <section className="space-y-3">
         <h2 className="text-[15px] font-semibold text-ink-dim">Mezzi</h2>
         {vehicles.map((v) => (
-          <Card key={v.id} accent={v.color} className="px-4 py-3">
+          <Card key={v.id} className="px-4 py-3">
             <div className="flex items-center justify-between">
               <span>{v.name}</span>
               <span className="tabular text-sm text-ink-dim">{formatKm(v.currentOdometerKm)}</span>

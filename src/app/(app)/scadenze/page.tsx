@@ -28,8 +28,8 @@ export default async function DeadlinesPage() {
             hint="Assicurazione, bollo, revisione e tagliando: aggiungile qui sotto."
           />
         ) : null}
-        {deadlines.map(({ deadline, vehicleName, vehicleColor, status, message }) => (
-          <Card key={deadline.id} accent={vehicleColor} className="px-4 py-3">
+        {deadlines.map(({ deadline, vehicleName, status, message }) => (
+          <Card key={deadline.id} className="px-4 py-3">
             <div className="flex items-baseline justify-between gap-3">
               <span className="font-medium capitalize">{deadline.type}</span>
               <span className={`text-sm ${STATE_STYLE[status.state]}`}>{message}</span>

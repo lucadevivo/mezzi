@@ -1,9 +1,9 @@
 @import 'tailwindcss';
 
 /*
- * "Vetro": lastre traslucide su fondo notturno, i pannelli di iOS. Il blur ha
- * senso solo se dietro c'è qualcosa da sfocare: la luce d'ambiente in
- * `body::before` è quel qualcosa.
+ * "Vetro": lastre traslucide su fondo notturno, i pannelli di iOS. Niente luci
+ * d'ambiente: il fondo è nero pieno, e il blur resta dove serve davvero — sotto
+ * la tab bar e i pulsanti che galleggiano sopra il contenuto che scorre.
  *
  * La palette è quella della modalità scura dell'app dei turni: neutri puri,
  * zero croma, azione primaria bianca. `surface` e `surface-2` sono bianchi
@@ -18,18 +18,15 @@
   --color-ink-dim: oklch(0.708 0 0);
   --color-accent: oklch(0.922 0 0);
   --color-accent-ink: oklch(0.205 0 0);
+  /* L'unico colore vivo di tutta l'app, il rosso di sistema dei turni: si accende
+     solo quando si deve davvero qualcosa. Il credito è bianco: la palette resta
+     neutra, e il rosso conserva il suo peso proprio perché è solo. */
   --color-debt: oklch(0.704 0.191 22.216);
-  /* I turni in scuro non hanno un verde: questo tiene la croma del rosso di
-     sistema, così debito e credito pesano uguale sullo schermo. */
-  --color-credit: oklch(0.75 0.15 150);
 
-  /* Su iPhone questo è SF Pro vero, senza scaricare niente: nessun font
-     di rete può somigliare a iOS quanto il font di iOS. */
-  --font-sans:
-    -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', system-ui, sans-serif;
-  /* I numeri vanno in grazie: su iPhone `ui-serif` è New York, altrove Georgia.
-     Un contachilometri è uno strumento, non un terminale. */
-  --font-numeric: ui-serif, 'New York', Georgia, 'Times New Roman', serif;
+  /* Gli stessi dell'app delle pizze. */
+  --font-sans: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  /* I numeri in mono: cifre di uguale larghezza, il contachilometri non balla. */
+  --font-numeric: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
 
   --radius-card: 22px;
 
@@ -51,17 +48,6 @@ body {
   -webkit-font-smoothing: antialiased;
   /* Niente rimbalzo elastico sotto la barra delle azioni su iPhone. */
   overscroll-behavior-y: none;
-}
-
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background:
-    radial-gradient(62% 44% at 12% -10%, oklch(1 0 0 / 9%), transparent 70%),
-    radial-gradient(70% 48% at 92% 106%, oklch(1 0 0 / 6%), transparent 72%);
 }
 
 @layer components {
