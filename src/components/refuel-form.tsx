@@ -162,7 +162,9 @@ export function RefuelForm({
           <p className="mt-1 text-xs text-ink-dim">
             {beneficiari.length === 0
               ? 'Se non scegli nessuno vanno divisi tra tutti.'
-              : `${litersPreview} divisi in ${beneficiari.length}.`}
+              : beneficiari.length === 1
+                ? 'Vanno tutti a chi hai scelto.'
+                : `Divisi in ${beneficiari.length} parti uguali.`}
           </p>
         </fieldset>
       ) : null}
