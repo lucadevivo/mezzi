@@ -9,6 +9,7 @@ import { db } from '@/lib/db';
 import { user as userTable } from '@/lib/db/schema';
 import { formatEuro, formatKm, formatLiters, formatSince } from '@/lib/format';
 import { listCategories } from '@/lib/services/categories';
+import { autonomyInTankKm } from '@/lib/billing';
 import { billableMemberIds, getVehicleState } from '@/lib/services/vehicles';
 
 export const dynamic = 'force-dynamic';
@@ -70,12 +71,13 @@ export default async function VehiclePage({ params }: { params: Promise<{ id: st
             <dt>Nel serbatoio</dt>
             <dd className="tabular text-ink">≈ {formatLiters(litersInTank)}</dd>
           </div>
-          {vehicle.ownerNote ? (
-            <div>
-              <dt>Nota</dt>
-              <dd className="text-ink">{vehicle.ownerNote}</dd>
-            </div>
-          ) : null}
+          <div>
+            {/* Quello che uno vuole sapere prima di partire: quanto ci arrivo? */}
+            <dt>Autonomia</dt>
+            <dd className="tabular text-ink">
+              ≈ {formatKm(autonomyInTankKm(litersInTank, consumption.kmPerLiter))}
+            </dd>
+          </div>
         </dl>
       </Card>
 
