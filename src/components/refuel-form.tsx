@@ -4,7 +4,7 @@ import { useActionState, useState } from 'react';
 import { recordRefuelAction, type ActionState } from '@/app/actions';
 import { padValue } from '@/components/odometer-pad';
 import { TankGauge } from '@/components/tank-gauge';
-import { ErrorBanner, Field, NumberInput, PrimaryButton } from '@/components/ui';
+import { ErrorBanner, Field, NumberInput, PrimaryButton, TextInput } from '@/components/ui';
 import { formatLiters } from '@/lib/format';
 
 export interface PayerOption {
@@ -42,7 +42,10 @@ export function RefuelForm({
   // Chi divide i costi: sono loro a poter ricevere l'autonomia comprata da un esterno.
   const inConti = payers.filter((p) => p.billable);
   const [beneficiari, setBeneficiari] = useState<string[]>(() => inConti.map((p) => p.id));
-  const pagaUnEsterno = payers.find((p) => p.id === payerId)?.billable === false;
+  const NUOVO = '__nuovo__';
+  const pagaUnEsterno =
+    payerId === NUOVO || payers.find((p) => p.id === payerId)?.billable === false;
+  const ospitiNoti = payers.filter((p) => !p.billable).map((p) => p.name);
 
   const parse = (value: string) => Number(value.replace(',', '.'));
   const liters = parse(total) / parse(pricePerLiter);
@@ -98,8 +101,28 @@ export function RefuelForm({
               {p.billable ? '' : ' (esterno)'}
             </option>
           ))}
+          {/* Papà, un amico: non sono nell'elenco perché non sono utenti dell'app.
+              Si scrivono qui e nascono, come le etichette dei tragitti. */}
+          <option value={NUOVO}>Qualcun altro…</option>
         </select>
       </label>
+
+      {payerId === NUOVO ? (
+        <Field label="Chi è" hint="Non entra nell'app: serve a sapere chi ha pagato.">
+          <TextInput
+            name="nuovoPagante"
+            list="paganti-esterni"
+            maxLength={40}
+            placeholder="Papà"
+            required
+          />
+          <datalist id="paganti-esterni">
+            {ospitiNoti.map((nome) => (
+              <option key={nome} value={nome} />
+            ))}
+          </datalist>
+        </Field>
+      ) : null}
 
       {/*
         Paga qualcuno che non è nei conti: l'autonomia comprata non può restare sul suo

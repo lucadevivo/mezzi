@@ -186,6 +186,8 @@ const refuelSchema = z.object({
   pricePerLiter: optionalDecimal,
   total: optionalDecimal,
   beneficiari: z.array(z.string()).optional(),
+  /** Se il pagante è nuovo arriva un nome, non un id: l'utente ospite nasce qui. */
+  nuovoPagante: z.string().trim().max(40).optional(),
   tankFractionAfter: z
     .string()
     .trim()
@@ -207,9 +209,15 @@ export async function recordRefuelAction(
   });
   if (!parsed.success) return { error: 'Dati del rifornimento non validi' };
 
-  const { vehicleId, payerId, odometerKm, liters, pricePerLiter, total } = parsed.data;
+  const { vehicleId, odometerKm, liters, pricePerLiter, total } = parsed.data;
 
   try {
+    // «Qualcun altro…»: chi ha pagato non è un utente dell'app, e nasce adesso.
+    const payerId =
+      parsed.data.payerId === '__nuovo__'
+        ? resolveGuest(parsed.data.nuovoPagante ?? '')
+        : parsed.data.payerId;
+
     const amounts = completeRefuelAmounts({
       liters: liters ?? null,
       pricePerLiterCents: pricePerLiter === null ? null : Math.round(pricePerLiter * 100),

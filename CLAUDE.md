@@ -132,8 +132,11 @@ filtrare, che appare solo quando almeno un'etichetta esiste.
 
 Papà che prende la macchina, un amico, la mamma: **non sono utenti dell'app** — non entrano, non
 hanno password, non dividono i costi — ma i loro chilometri devono esistere o il contachilometri non
-torna. Si creano scrivendo un nome, come le categorie (`resolveGuest`), dal terzo pulsante sui km
-non registrati: «È stato qualcun altro». Sono `billable:false`, `can_login:false`.
+torna. Si creano scrivendo un nome, come le categorie (`resolveGuest`), da **due punti**: il terzo pulsante
+sui km non registrati («È stato qualcun altro») e la voce «Qualcun altro…» nel menu «Chi ha pagato»
+del rifornimento. Servono entrambi: papà può aver messo benzina senza aver mai fatto una corsa
+rilevata, e all'inizio l'unica strada era quella dei km non registrati — quindi non compariva tra i
+paganti. Sono `billable:false`, `can_login:false`.
 
 **Se un ospite paga il carburante, l'autonomia non resta sul suo saldo** — non guida abbastanza da
 consumarla e quei km resterebbero fermi lì. **A chi vanno lo decide chi registra il rifornimento**:
