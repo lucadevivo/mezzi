@@ -155,6 +155,9 @@ Provata anche la strada automatica «tappa prima i buchi in proporzione»: scart
 
 ## Modello utenti (importante)
 
+**Nel seed non c'è nessun ospite.** La nonna c'era ed è stata tolta: un'app che nasce con dentro la
+nonna di qualcun altro è una supposizione. Gli ospiti si creano quando servono, scrivendo un nome.
+
 Un solo modello `users` con due flag:
 
 - `billable` — entra nella ripartizione dei costi. Nonna, ospiti e pagatori esterni: `false`.

@@ -25,13 +25,6 @@ const USERS = [
   },
 ] as const;
 
-const NONNA = {
-  id: 'u-nonna',
-  name: 'Nonna',
-  email: 'nonna@mezzi.local',
-  role: 'member',
-  color: '#8a5fc0',
-} as const;
 
 const VEHICLES = [
   {
@@ -80,13 +73,12 @@ export function seed() {
       .run();
   }
 
-  // La nonna usa la 500 ma non entra nella ripartizione: i suoi km si registrano,
-  // i suoi euro restano fuori dai conti tra fratelli. Solo l'admin scrive per lei.
-  db.insert(user)
-    .values({ ...NONNA, billable: false, canLogin: false })
-    .onConflictDoUpdate({ target: user.id, set: { color: NONNA.color } })
-    .run();
-
+  /*
+   * Nessun utente non fatturabile nel seed. La nonna c'era, ma un'app che nasce con
+   * dentro la nonna di qualcun altro è una supposizione: gli ospiti — la nonna, papà,
+   * un amico — si creano quando servono davvero, scrivendo un nome mentre si registra
+   * una corsa o un rifornimento.
+   */
   for (const v of VEHICLES) {
     db.insert(vehicles)
       .values(v)
@@ -100,13 +92,7 @@ export function seed() {
     }
   }
 
-  // La nonna partecipa alla 500 senza quota sui costi fissi.
-  db.insert(vehicleMembers)
-    .values({ id: randomUUID(), vehicleId: 'v-500', userId: NONNA.id, shareFixedCosts: false })
-    .onConflictDoNothing()
-    .run();
-
-  console.log(`Seed completato: ${USERS.length + 1} utenti, ${VEHICLES.length} mezzi.`);
+  console.log(`Seed completato: ${USERS.length} utenti, ${VEHICLES.length} mezzi.`);
 }
 
 /**
