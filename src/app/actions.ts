@@ -162,15 +162,20 @@ export async function closeTripAction(
   redirect(`/mezzi/${parsed.data.vehicleId}`);
 }
 
+const takeOverSchema = z.object({ vehicleId: z.string().min(1), odometerKm: decimal });
+
 export async function takeOverTripAction(_prev: ActionState, formData: FormData) {
   const user = await requireUser();
-  const vehicleId = String(formData.get('vehicleId') ?? '');
+  const parsed = takeOverSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return { error: 'Contachilometri non valido' };
+
   try {
-    takeOverOpenTrip(vehicleId, user.id, user.id);
+    // I km fino a questa lettura restano a chi aveva aperto la corsa.
+    takeOverOpenTrip(parsed.data.vehicleId, user.id, parsed.data.odometerKm);
   } catch (error) {
     return fail(error);
   }
-  revalidatePath(`/mezzi/${vehicleId}`);
+  revalidatePath(`/mezzi/${parsed.data.vehicleId}`);
   return {};
 }
 

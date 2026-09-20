@@ -88,10 +88,11 @@ export default async function VehiclePage({ params }: { params: Promise<{ id: st
               In uso da {driver?.name ?? '?'}, da {formatSince(openTrip.startedAt)}.
             </p>
             <p className="mt-1 text-sm text-ink-dim">
-              Se l’ha lasciata aperta per sbaglio, puoi prenderla comunque: resta tracciato.
+              Se l’ha lasciata aperta per sbaglio, puoi prenderla comunque: i km fatti finora
+              restano suoi, la tua corsa parte dal contachilometri di adesso.
             </p>
           </Card>
-          <TakeOverButton vehicleId={vehicle.id} />
+          <TakeOverButton vehicleId={vehicle.id} currentOdometerKm={vehicle.currentOdometerKm} />
         </section>
       ) : (
         <section className="space-y-3">

@@ -250,22 +250,48 @@ export function closeTrip(input: CloseTripInput): CloseTripResult {
   return { distanceKm, costCents, warnings };
 }
 
-/** Corsa dimenticata aperta da un altro: la si prende comunque, ma resta tracciato. */
-export function takeOverOpenTrip(vehicleId: string, newUserId: string, actorId: string): void {
+/**
+ * Corsa dimenticata aperta da un altro: la corsa dell'altro si **chiude** al
+ * contachilometri letto adesso — quei km li ha fatti lui — e da lì ne parte una nuova
+ * per chi prende il mezzo. Prima la corsa cambiava solo intestatario: chi la prendeva
+ * si ritrovava addebitati anche i km del dimenticone.
+ */
+export function takeOverOpenTrip(
+  vehicleId: string,
+  newUserId: string,
+  odometerKm: number,
+  now = new Date(),
+): string {
   const open = getOpenTrip(vehicleId);
   if (!open) throw new TripServiceError('Nessuna corsa aperta su questo mezzo');
-
-  db.transaction((tx) => {
-    tx.update(trips).set({ userId: newUserId }).where(eq(trips.id, open.id)).run();
-    logAudit(
-      {
-        userId: actorId,
-        action: 'trip.takeover',
-        entityType: 'trip',
-        entityId: open.id,
-        payload: { from: open.userId, to: newUserId },
-      },
-      tx,
+  if (odometerKm < open.odometerStartKm) {
+    throw new TripServiceError(
+      `Il contachilometri non può stare sotto la partenza della corsa aperta (${open.odometerStartKm} km).`,
     );
+  }
+
+  // ponytail: due transazioni, non una. Se la seconda salta resta una corsa chiusa e il
+  // mezzo libero — uno stato che l'utente rimedia da solo avviando la corsa.
+  closeTrip({
+    tripId: open.id,
+    odometerEndKm: odometerKm,
+    note: 'Chiusa da chi ha preso il mezzo dopo',
+    // I warning di plausibilità sono sulla corsa di un altro: chi prende il mezzo non
+    // può confermarli, e bloccarlo qui vorrebbe dire lasciargli il mezzo inutilizzabile.
+    confirmWarnings: true,
+    now,
   });
+
+  const { tripId } = startTrip({ vehicleId, userId: newUserId, odometerKm, now });
+
+  logAudit({
+    userId: newUserId,
+    action: 'trip.takeover',
+    entityType: 'trip',
+    entityId: open.id,
+    payload: { from: open.userId, to: newUserId, odometerKm, newTripId: tripId },
+    occurredAt: now,
+  });
+
+  return tripId;
 }

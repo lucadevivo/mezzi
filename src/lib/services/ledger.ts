@@ -54,6 +54,8 @@ export function reverseLedgerEntries(
     userId: original.userId,
     vehicleId: original.vehicleId,
     type: 'adjustment' as const,
+    // Il saldo è SUM(amount_km): stornare i soli centesimi lasciava il saldo intatto.
+    amountKm: -original.amountKm,
     amountCents: -original.amountCents,
     sourceType,
     sourceId,
