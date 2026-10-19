@@ -2,6 +2,7 @@ import { eq } from 'drizzle-orm';
 import { balances, refuelSuggestion } from '@/lib/billing';
 import { db } from '@/lib/db';
 import { ledgerEntries, user, vehicles } from '@/lib/db/schema';
+import { getVehicleState } from './vehicles';
 
 export interface UserBalance {
   userId: string;
@@ -10,42 +11,8 @@ export interface UserBalance {
   billable: boolean;
   /** Positivo = autonomia già pagata. Negativo = km fatti e non ancora coperti. */
   balanceKm: number;
-}
-
-function allBalances(): Map<string, number> {
-  return balances(
-    db
-      .select()
-      .from(ledgerEntries)
-      .all()
-      .map((row) => ({
-        userId: row.userId,
-        amountKm: row.amountKm,
-        type: row.type,
-        occurredAt: row.occurredAt,
-      })),
-  );
-}
-
-export function listBalances(): UserBalance[] {
-  const byUser = allBalances();
-  return db
-    .select()
-    .from(user)
-    .where(eq(user.active, true))
-    .all()
-    .map((row) => ({
-      userId: row.id,
-      name: row.name,
-      color: row.color,
-      billable: row.billable,
-      balanceKm: byUser.get(row.id) ?? 0,
-    }))
-    .sort((a, b) => a.balanceKm - b.balanceKm);
-}
-
-export function getBalance(userId: string): number {
-  return allBalances().get(userId) ?? 0;
+  /** Euro da mettere SU QUESTO mezzo per tornare in pari. 0 se non è in debito. */
+  topupCents: number;
 }
 
 export interface VehicleBalances {
@@ -56,9 +23,11 @@ export interface VehicleBalances {
 }
 
 /**
- * Gli stessi saldi, ma spezzati per mezzo: ogni riga a ledger ha il suo `vehicleId`,
- * quindi la somma dei saldi per mezzo torna esattamente al saldo globale. Compaiono solo
- * i mezzi con movimenti e, dentro, solo chi quel mezzo l'ha davvero usato o rifornito.
+ * I saldi spezzati per mezzo: ogni riga a ledger ha il suo `vehicleId`, quindi la somma
+ * dei saldi per mezzo torna esattamente al saldo globale. Compaiono solo i mezzi con
+ * movimenti e, dentro, solo chi quel mezzo l'ha davvero usato o rifornito. Per chi è in
+ * debito si calcola quanti euro mettere su QUEL mezzo (prezzo e consumo del mezzo),
+ * così il consiglio è visibile a tutti, non solo al diretto interessato.
  */
 export function listBalancesByVehicle(): VehicleBalances[] {
   const entries = db.select().from(ledgerEntries).all();
@@ -90,27 +59,24 @@ export function listBalancesByVehicle(): VehicleBalances[] {
           occurredAt: row.occurredAt,
         })),
       );
+      // Prezzo e consumo del mezzo servono a convertire il debito in km in euro da mettere.
+      const state = getVehicleState(v.id);
       const rows: UserBalance[] = [...perUser]
         .map(([userId, balanceKm]) => {
           const u = users.get(userId);
-          return u
-            ? { userId, name: u.name, color: u.color, billable: u.billable, balanceKm }
-            : null;
+          if (!u) return null;
+          const topupCents =
+            balanceKm < 0 && state
+              ? refuelSuggestion(
+                  balanceKm,
+                  state.price.pricePerLiterCents,
+                  state.consumption.kmPerLiter,
+                ).suggestedCents
+              : 0;
+          return { userId, name: u.name, color: u.color, billable: u.billable, balanceKm, topupCents };
         })
         .filter((r): r is UserBalance => r !== null)
         .sort((a, b) => a.balanceKm - b.balanceKm);
       return rows.length > 0 ? [{ vehicleId: v.id, name: v.name, rows }] : [];
     });
-}
-
-/**
- * "Quanto devo mettere?" — la domanda per cui esiste l'app. Il debito è in
- * chilometri, ma alla pompa servono euro: prezzo e consumo del mezzo fanno il resto.
- */
-export function getRefuelSuggestion(
-  userId: string,
-  pricePerLiterCents: number,
-  kmPerLiter: number,
-) {
-  return refuelSuggestion(getBalance(userId), pricePerLiterCents, kmPerLiter);
 }

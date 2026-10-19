@@ -43,11 +43,19 @@ export default async function BalancesPage() {
             <section key={v.vehicleId} className="space-y-2">
               <h2 className="text-sm font-medium">{v.name}</h2>
               {billable.map((b) => (
-                <Card key={b.userId} className="flex items-baseline justify-between gap-3 px-4 py-3">
-                  <span className="font-medium">{b.name}</span>
-                  <span className={`tabular text-lg ${tono(b.balanceKm)}`}>
-                    {etichetta(b.balanceKm)}
-                  </span>
+                <Card key={b.userId} className="px-4 py-3">
+                  <div className="flex items-baseline justify-between gap-3">
+                    <span className="font-medium">{b.name}</span>
+                    <span className={`tabular text-lg ${tono(b.balanceKm)}`}>
+                      {etichetta(b.balanceKm)}
+                    </span>
+                  </div>
+                  {/* Il consiglio è visibile a tutti: chiunque può coprire il debito di un altro. */}
+                  {b.balanceKm < 0 && b.topupCents > 0 ? (
+                    <p className="tabular mt-1 text-xs text-ink-dim">
+                      topup: ~{(b.topupCents / 100).toFixed(0)} € di benzina su {v.name}
+                    </p>
+                  ) : null}
                 </Card>
               ))}
               {others.map((b) => (
