@@ -1,7 +1,7 @@
 import { Card } from '@/components/ui';
 import { requireUser } from '@/lib/auth/session';
 import { formatKm } from '@/lib/format';
-import { listBalances } from '@/lib/services/balances';
+import { listBalancesByVehicle } from '@/lib/services/balances';
 import { claimStatsFor } from '@/lib/services/history';
 
 export const dynamic = 'force-dynamic';
@@ -19,44 +19,63 @@ function etichetta(km: number): string {
 
 export default async function BalancesPage() {
   await requireUser();
-  const balances = listBalances();
+  const perVehicle = listBalancesByVehicle();
 
-  const billable = balances.filter((b) => b.billable);
-  const others = balances.filter((b) => !b.billable && b.balanceKm !== 0);
+  // Le corse non registrate sono un dato per persona, non per mezzo: stanno in fondo, una volta sola.
+  const claimUserIds = [
+    ...new Map(perVehicle.flatMap((v) => v.rows).map((r) => [r.userId, r])).values(),
+  ].filter((r) => r.billable);
+  const claims = claimUserIds
+    .map((r) => ({ name: r.name, stats: claimStatsFor(r.userId) }))
+    .filter((c) => c.stats.detected + c.stats.claimed + c.stats.denied > 0);
 
   return (
     <div className="space-y-6">
-      <section className="space-y-3">
-        <h1 className="text-[15px] font-semibold text-ink-dim">Saldi</h1>
-        {billable.map((b) => {
-          const stats = claimStatsFor(b.userId);
+      <h1 className="text-[15px] font-semibold text-ink-dim">Saldi per mezzo</h1>
+
+      {perVehicle.length === 0 ? (
+        <Card className="px-4 py-3 text-sm text-ink-dim">Ancora nessun movimento.</Card>
+      ) : (
+        perVehicle.map((v) => {
+          const billable = v.rows.filter((r) => r.billable);
+          const others = v.rows.filter((r) => !r.billable && r.balanceKm !== 0);
           return (
-            <Card key={b.userId} className="px-4 py-3">
+            <section key={v.vehicleId} className="space-y-2">
+              <h2 className="text-sm font-medium">{v.name}</h2>
+              {billable.map((b) => (
+                <Card key={b.userId} className="flex items-baseline justify-between gap-3 px-4 py-3">
+                  <span className="font-medium">{b.name}</span>
+                  <span className={`tabular text-lg ${tono(b.balanceKm)}`}>
+                    {etichetta(b.balanceKm)}
+                  </span>
+                </Card>
+              ))}
+              {others.map((b) => (
+                <Card
+                  key={b.userId}
+                  className="flex items-center justify-between px-4 py-2 text-ink-dim"
+                >
+                  <span>{b.name}</span>
+                  <span className="tabular">{etichetta(b.balanceKm)}</span>
+                </Card>
+              ))}
+            </section>
+          );
+        })
+      )}
+
+      {claims.length > 0 ? (
+        <section className="space-y-2">
+          {/* Pubblica di proposito: chi nega sempre, alla lunga, si vede. */}
+          <h2 className="text-[15px] font-semibold text-ink-dim">Corse non registrate</h2>
+          {claims.map((c) => (
+            <Card key={c.name} className="px-4 py-3">
               <div className="flex items-baseline justify-between gap-3">
-                <span className="font-medium">{b.name}</span>
-                <span className={`tabular text-lg ${tono(b.balanceKm)}`}>
-                  {etichetta(b.balanceKm)}
+                <span className="font-medium">{c.name}</span>
+                <span className="tabular text-xs text-ink-dim">
+                  {c.stats.detected} rilevate · {c.stats.claimed} reclamate · {c.stats.denied} negate
                 </span>
               </div>
-              {/* Pubblica di proposito: chi nega sempre, alla lunga, si vede. */}
-              {stats.detected + stats.claimed + stats.denied > 0 ? (
-                <p className="tabular mt-1 text-xs text-ink-dim">
-                  corse non registrate: {stats.detected} rilevate · {stats.claimed} reclamate ·{' '}
-                  {stats.denied} negate
-                </p>
-              ) : null}
-            </Card>
-          );
-        })}
-      </section>
-
-      {others.length > 0 ? (
-        <section className="space-y-3">
-          <h2 className="text-[15px] font-semibold text-ink-dim">Fuori dai conti</h2>
-          {others.map((b) => (
-            <Card key={b.userId} className="flex items-center justify-between px-4 py-3">
-              <span>{b.name}</span>
-              <span className="tabular text-ink-dim">{etichetta(b.balanceKm)}</span>
             </Card>
           ))}
         </section>

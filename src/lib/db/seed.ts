@@ -44,7 +44,9 @@ const VEHICLES = [
     name: 'Fiat 500',
     type: 'car',
     fuelType: 'benzina',
-    declaredConsumptionKmL: 17,
+    // Fiat 500 1.2 Lounge, benzina: combinato di libretto 5,10 l/100km = 19,6 km/l.
+    // Serbatoio 35 l, confermato da libretto.
+    declaredConsumptionKmL: 19.6,
     tankCapacityL: 35,
     discrepancyThresholdKm: 5,
     color: '#c9682f',
