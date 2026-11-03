@@ -9,7 +9,7 @@ import { requireAdmin, requireUser } from '@/lib/auth/session';
 import { resolveGuest } from '@/lib/services/guests';
 import { getEnv } from '@/lib/env';
 import { completeDeadline, createDeadline } from '@/lib/services/deadlines';
-import { reverseRefuel, reverseTrip } from '@/lib/services/history';
+import { moveTrip, reverseRefuel, reverseTrip } from '@/lib/services/history';
 import {
   notifyUnclaimedResolved,
   notifyUnclaimedTrip,
@@ -292,6 +292,26 @@ export async function reverseAction(_prev: ActionState, formData: FormData): Pro
   try {
     if (kind === 'trip') reverseTrip(id, admin.id, reason);
     else reverseRefuel(id, admin.id, reason);
+  } catch (error) {
+    return fail(error);
+  }
+
+  revalidatePath('/storico');
+  revalidatePath('/saldi');
+  revalidatePath('/');
+  return {};
+}
+
+const moveTripSchema = z.object({ tripId: z.string().min(1), userId: z.string().min(1) });
+
+/** Solo l'admin: la corsa l'ha guidata un altro, la sua quota passa a lui. */
+export async function moveTripAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const admin = await requireAdmin();
+  const parsed = moveTripSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return { error: 'Scegli a chi spostarla' };
+
+  try {
+    moveTrip(parsed.data.tripId, parsed.data.userId, admin.id);
   } catch (error) {
     return fail(error);
   }

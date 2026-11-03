@@ -1,5 +1,6 @@
 import { eq } from 'drizzle-orm';
 import { HistoryFilters } from '@/components/history-filters';
+import { MoveTripButton } from '@/components/move-trip-button';
 import { ReverseButton } from '@/components/reverse-button';
 import { Card, EmptyState } from '@/components/ui';
 import { requireUser } from '@/lib/auth/session';
@@ -100,6 +101,13 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
               </p>
             </>
           )}
+          {me.role === 'admin' && kind === 'trip' ? (
+            <MoveTripButton
+              tripId={row.id}
+              currentUserId={row.userId}
+              people={people.filter((p) => p.billable).map((p) => ({ id: p.id, name: p.name }))}
+            />
+          ) : null}
           {me.role === 'admin' ? <ReverseButton kind={kind} id={row.id} /> : null}
         </Card>
       ))}

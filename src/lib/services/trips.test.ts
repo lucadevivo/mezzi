@@ -47,3 +47,24 @@ test('chi prende una corsa lasciata aperta non eredita i km dell’altro', () =>
   expect(kmDi('u-luca')).toBeCloseTo(-59.9, 1);
   expect(kmDi('u-gabriele')).toBeCloseTo(-10, 1);
 });
+
+test('l’admin sposta una corsa: i km passano dal guidatore sbagliato a quello giusto', async () => {
+  const { moveTrip } = await import('./history');
+  const prima = { luca: kmDi('u-luca'), matteo: kmDi('u-matteo') };
+  const { tripId } = startTrip({
+    vehicleId: 'v-fiesta',
+    userId: 'u-luca',
+    odometerKm: 66974.1,
+    now: new Date('2026-09-12T10:00:00Z'),
+  });
+  closeTrip({ tripId, odometerEndKm: 66991.7, now: new Date('2026-09-12T11:00:00Z') });
+
+  moveTrip(tripId, 'u-matteo', 'u-luca');
+  expect(kmDi('u-luca')).toBeCloseTo(prima.luca, 1);
+  expect(kmDi('u-matteo')).toBeCloseTo(prima.matteo - 17.6, 1);
+  expect(() => moveTrip(tripId, 'u-matteo', 'u-luca')).toThrow('già sua');
+
+  moveTrip(tripId, 'u-luca', 'u-luca');
+  expect(kmDi('u-luca')).toBeCloseTo(prima.luca - 17.6, 1);
+  expect(kmDi('u-matteo')).toBeCloseTo(prima.matteo, 1);
+});

@@ -1,6 +1,15 @@
+import { randomUUID } from 'node:crypto';
 import { and, desc, eq, gte, lte, type SQL } from 'drizzle-orm';
 import { db } from '@/lib/db';
-import { auditLog, refuels, trips, unclaimedTripResponses, unclaimedTrips } from '@/lib/db/schema';
+import {
+  auditLog,
+  ledgerEntries,
+  refuels,
+  trips,
+  unclaimedTripResponses,
+  unclaimedTrips,
+  user,
+} from '@/lib/db/schema';
 import { logAudit } from './audit';
 import { reverseLedgerEntries } from './ledger';
 
@@ -73,6 +82,87 @@ export function reverseTrip(tripId: string, actorId: string, reason: string): vo
         entityType: 'trip',
         entityId: tripId,
         payload: { reason },
+      },
+      tx,
+    );
+  });
+}
+
+/**
+ * La corsa l'ha guidata un altro: la quota del guidatore passa al nuovo, con storno
+ * e riga nuova (il ledger non si tocca). Le quote dei passeggeri restano dove sono.
+ */
+export function moveTrip(tripId: string, toUserId: string, actorId: string): void {
+  const trip = db.select().from(trips).where(eq(trips.id, tripId)).get();
+  if (!trip) throw new HistoryError('Corsa inesistente');
+  if (trip.status !== 'closed') throw new HistoryError('Si sposta solo una corsa chiusa');
+  if (trip.userId === toUserId) throw new HistoryError('La corsa è già sua');
+  const target = db.select().from(user).where(eq(user.id, toUserId)).get();
+  if (!target?.active) throw new HistoryError('Utente inesistente');
+
+  const now = new Date();
+  db.transaction((tx) => {
+    const rows = tx
+      .select()
+      .from(ledgerEntries)
+      .where(and(eq(ledgerEntries.sourceType, 'trip'), eq(ledgerEntries.sourceId, tripId)))
+      .all();
+    const reversed = new Set(rows.map((r) => r.reversesEntryId).filter(Boolean));
+    const live = rows.filter(
+      (r) => r.userId === trip.userId && !r.reversesEntryId && !reversed.has(r.id),
+    );
+    if (live.length === 0) throw new HistoryError('Questa corsa è stata stornata');
+
+    const reason = `corsa spostata a ${target.name}`;
+    for (const r of live) {
+      const base = {
+        vehicleId: r.vehicleId,
+        sourceType: r.sourceType,
+        sourceId: r.sourceId,
+      };
+      tx.insert(ledgerEntries)
+        .values([
+          {
+            ...base,
+            id: randomUUID(),
+            userId: r.userId,
+            type: 'adjustment',
+            amountKm: -r.amountKm,
+            amountCents: -r.amountCents,
+            reversesEntryId: r.id,
+            occurredAt: now,
+            description: `Storno: ${reason}`,
+          },
+          {
+            ...base,
+            id: randomUUID(),
+            userId: toUserId,
+            type: r.type,
+            amountKm: r.amountKm,
+            amountCents: r.amountCents,
+            occurredAt: r.occurredAt,
+            description: r.description,
+          },
+        ])
+        .run();
+    }
+
+    tx.update(trips)
+      .set({
+        userId: toUserId,
+        note: [trip.note, `Spostata a ${target.name}`].filter(Boolean).join(' · '),
+        updatedAt: now,
+      })
+      .where(eq(trips.id, tripId))
+      .run();
+
+    logAudit(
+      {
+        userId: actorId,
+        action: 'trip.move',
+        entityType: 'trip',
+        entityId: tripId,
+        payload: { from: trip.userId, to: toUserId },
       },
       tx,
     );
