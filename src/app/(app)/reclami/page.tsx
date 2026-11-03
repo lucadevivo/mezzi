@@ -23,13 +23,10 @@ export default async function ClaimsPage() {
 
   const users = db.select().from(user).orderBy(asc(user.name)).all();
   const names = new Map(users.map((u) => [u.id, u.name]));
-  // La tendina «Assegna a» è solo dell'admin. Prima i fratelli, poi i non fatturabili.
+  // La tendina «Assegna a» è solo dell'admin, e solo con utenti veri: gli ospiti non pagano.
   const assignees =
     me.role === 'admin'
-      ? [
-          ...users.filter((u) => u.billable),
-          ...users.filter((u) => !u.billable).map((u) => ({ ...u, name: `${u.name} (ospite)` })),
-        ].map((u) => ({ id: u.id, name: u.name }))
+      ? users.filter((u) => u.billable && u.active).map((u) => ({ id: u.id, name: u.name }))
       : [];
   // Riepilogo per persona (spostato qui da Saldi): pubblico di proposito, chi nega sempre si vede.
   const claims = users
