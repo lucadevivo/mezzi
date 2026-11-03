@@ -17,7 +17,7 @@ import {
 import { removeSubscription, saveSubscription } from '@/lib/services/push';
 import { recordRefuel } from '@/lib/services/refuels';
 import { checkOdometer, closeTrip, startTrip, takeOverOpenTrip } from '@/lib/services/trips';
-import { respondToUnclaimed, assignUnclaimedToNonBillable } from '@/lib/services/unclaimed';
+import { respondToUnclaimed, assignUnclaimed } from '@/lib/services/unclaimed';
 
 export interface ActionState {
   error?: string;
@@ -302,26 +302,27 @@ export async function reverseAction(_prev: ActionState, formData: FormData): Pro
   return {};
 }
 
-const guestSchema = z.object({
+const assignSchema = z.object({
   unclaimedTripId: z.string().min(1),
-  nome: z.string().trim().min(1).max(40),
+  userId: z.string().min(1),
 });
 
 /**
- * «Questi km li ha fatti papà.» L'ospite non è un utente dell'app: non entra e non
- * divide i costi, ma i suoi chilometri devono esistere o il contachilometri non torna.
+ * Solo l'admin assegna una corsa non registrata a qualcun altro, scegliendolo dalla
+ * tendina. Gli altri possono solo dire «sono miei» o «non sono miei»: un nome scritto a
+ * mano creava un ospite nuovo e i km non finivano addosso a nessuno.
  */
-export async function assignUnclaimedToGuestAction(
+export async function assignUnclaimedAction(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  const me = await requireUser();
-  const parsed = guestSchema.safeParse(Object.fromEntries(formData));
-  if (!parsed.success) return { error: 'Serve il nome di chi ha guidato' };
+  const admin = await requireAdmin();
+  const parsed = assignSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return { error: 'Scegli a chi assegnarla' };
 
   try {
-    const guestId = resolveGuest(parsed.data.nome);
-    assignUnclaimedToNonBillable(parsed.data.unclaimedTripId, guestId, me.id);
+    assignUnclaimed(parsed.data.unclaimedTripId, parsed.data.userId, admin.id);
+    await notifyUnclaimedResolved(parsed.data.unclaimedTripId, [parsed.data.userId], 'claimed');
   } catch (error) {
     return fail(error);
   }

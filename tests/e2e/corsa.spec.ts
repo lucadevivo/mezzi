@@ -100,21 +100,17 @@ test('una corsa si può etichettare, e l’etichetta nasce da sé', async ({ pag
 });
 
 /**
- * Papà prende la macchina: non è un utente dell'app, ma i suoi km devono esistere
- * o il contachilometri non torna. L'ospite si crea scrivendo un nome.
+ * Solo l'admin assegna una corsa non registrata a qualcun altro, dalla tendina:
+ * niente nomi scritti a mano, i km finiscono su un utente vero.
  */
-test('km di un ospite: si crea al volo e la corsa è sua', async ({ page }) => {
+test("l'admin assegna una corsa non registrata dalla tendina", async ({ page }) => {
   // I 60 km non reclamati dello Scarabeo sono ancora lì dal test precedente.
   await page.goto('/reclami');
   await expect(page.getByText(/60 km non registrati/)).toBeVisible();
-  await page.getByRole('button', { name: /qualcun altro/ }).click();
-  await page.getByPlaceholder('Papà').fill('Papà');
-  await page.getByRole('button', { name: 'Addebita a chi ho scritto' }).click();
+  await page.getByLabel('Assegna a (admin)').selectOption({ label: 'Matteo' });
+  await page.getByRole('button', { name: 'Assegna la corsa' }).click();
 
-  // Sparisce dai reclami e i km finiscono su di lui, fuori dai conti tra fratelli.
-  await expect(page.getByText(/non registrati su questo mezzo/)).toHaveCount(0);
-  await page.goto('/saldi');
-  await expect(page.getByText('Papà')).toBeVisible();
+  await expect(page.getByText("Assegnata a Matteo dall'admin")).toBeVisible();
 });
 
 /**
@@ -132,11 +128,11 @@ test('il carburante di un esterno va a chi si decide, in parti uguali', async ({
   await page.getByLabel('Chi è').fill('Papà');
 
   // Comparso il selettore, con tutti spuntati: si tolgono gli altri due e restano
-  // 340 km (20 litri a 17 km/l) tutti a Matteo.
+  // 392 km (20 litri a 19,6 km/l) tutti a Matteo.
   await page.getByRole('button', { name: 'Luca', exact: true }).click();
   await page.getByRole('button', { name: 'Gabriele', exact: true }).click();
   await page.getByRole('button', { name: 'Registra il rifornimento' }).click();
 
   await page.goto('/saldi');
-  await expect(page.getByText('340 km di autonomia')).toBeVisible();
+  await expect(page.getByText('392 km di autonomia')).toBeVisible();
 });

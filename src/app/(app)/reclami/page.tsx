@@ -1,8 +1,8 @@
-import { desc, eq } from 'drizzle-orm';
+import { asc, desc, eq } from 'drizzle-orm';
 import { ClaimButtons } from '@/components/claim-buttons';
 import { Card, EmptyState } from '@/components/ui';
 import { requireUser } from '@/lib/auth/session';
-import { listGuests } from '@/lib/services/guests';
+import { claimStatsFor } from '@/lib/services/history';
 import { db } from '@/lib/db';
 import { unclaimedTripResponses, unclaimedTrips, user, vehicles } from '@/lib/db/schema';
 import { formatDay, formatEuro, formatKm, formatRemaining } from '@/lib/format';
@@ -12,7 +12,6 @@ export const dynamic = 'force-dynamic';
 
 export default async function ClaimsPage() {
   const me = await requireUser();
-  const guests = listGuests().map((g) => g.name);
   const now = new Date();
 
   const rows = db
@@ -22,13 +21,21 @@ export default async function ClaimsPage() {
     .limit(30)
     .all();
 
-  const names = new Map(
-    db
-      .select()
-      .from(user)
-      .all()
-      .map((u) => [u.id, u.name]),
-  );
+  const users = db.select().from(user).orderBy(asc(user.name)).all();
+  const names = new Map(users.map((u) => [u.id, u.name]));
+  // La tendina «Assegna a» è solo dell'admin. Prima i fratelli, poi i non fatturabili.
+  const assignees =
+    me.role === 'admin'
+      ? [
+          ...users.filter((u) => u.billable),
+          ...users.filter((u) => !u.billable).map((u) => ({ ...u, name: `${u.name} (ospite)` })),
+        ].map((u) => ({ id: u.id, name: u.name }))
+      : [];
+  // Riepilogo per persona (spostato qui da Saldi): pubblico di proposito, chi nega sempre si vede.
+  const claims = users
+    .filter((u) => u.billable)
+    .map((u) => ({ name: u.name, stats: claimStatsFor(u.id) }))
+    .filter((c) => c.stats.detected + c.stats.claimed + c.stats.denied > 0);
   const vehicleNames = new Map(
     db
       .select()
@@ -40,6 +47,20 @@ export default async function ClaimsPage() {
   return (
     <div className="space-y-4">
       <h1 className="text-[15px] font-semibold text-ink-dim">Corse non registrate</h1>
+
+      {claims.length > 0 ? (
+        <Card className="divide-y divide-line px-4 py-1">
+          {claims.map((c) => (
+            <div key={c.name} className="flex items-baseline justify-between gap-3 py-2">
+              <span className="font-medium">{c.name}</span>
+              <span className="tabular text-xs text-ink-dim">
+                {c.stats.detected} rilevate · {c.stats.claimed} reclamate · {c.stats.denied}{' '}
+                negate
+              </span>
+            </div>
+          ))}
+        </Card>
+      ) : null}
 
       {rows.length === 0 ? (
         <EmptyState
@@ -84,7 +105,7 @@ export default async function ClaimsPage() {
                 <ClaimButtons
                   unclaimedTripId={row.id}
                   answered={mine?.answer ?? null}
-                  guests={guests}
+                  assignees={assignees}
                 />
               </>
             ) : (

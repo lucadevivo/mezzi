@@ -1,32 +1,27 @@
 'use client';
 
-import { useActionState, useState } from 'react';
-import {
-  assignUnclaimedToGuestAction,
-  respondUnclaimedAction,
-  type ActionState,
-} from '@/app/actions';
-import { ErrorBanner, PrimaryButton, SecondaryButton, TextInput } from '@/components/ui';
+import { useActionState } from 'react';
+import { assignUnclaimedAction, respondUnclaimedAction, type ActionState } from '@/app/actions';
+import { ErrorBanner, PrimaryButton, SecondaryButton } from '@/components/ui';
 
 export function ClaimButtons({
   unclaimedTripId,
   answered,
-  guests,
+  assignees,
 }: {
   unclaimedTripId: string;
   answered: 'mine' | 'not_mine' | null;
-  /** Chi è già stato registrato come ospite: papà, la nonna, un amico. */
-  guests: string[];
+  /** Solo per l'admin: a chi può assegnare la corsa. Vuoto = la tendina non c'è. */
+  assignees: { id: string; name: string }[];
 }) {
   const [state, formAction, pending] = useActionState<ActionState, FormData>(
     respondUnclaimedAction,
     {},
   );
-  const [guestState, guestAction, guestPending] = useActionState<ActionState, FormData>(
-    assignUnclaimedToGuestAction,
+  const [assignState, assignAction, assignPending] = useActionState<ActionState, FormData>(
+    assignUnclaimedAction,
     {},
   );
-  const [apertoOspite, setApertoOspite] = useState(false);
 
   return (
     <div className="space-y-2">
@@ -46,37 +41,33 @@ export function ClaimButtons({
         </SecondaryButton>
       </form>
 
-      {/*
-        La terza risposta: non sono di nessuno di noi, ma so di chi sono. L'ospite si
-        crea scrivendo un nome — non è un utente dell'app, non entra e non divide i
-        costi, ma i suoi km esistono, o il contachilometri non torna.
-      */}
-      {apertoOspite ? (
-        <form action={guestAction} className="space-y-2">
+      {assignees.length > 0 ? (
+        <form action={assignAction} className="space-y-2 border-t border-line pt-3">
           <input type="hidden" name="unclaimedTripId" value={unclaimedTripId} />
-          <ErrorBanner>{guestState.error}</ErrorBanner>
-          <TextInput
-            name="nome"
-            list={`ospiti-${unclaimedTripId}`}
-            maxLength={40}
-            placeholder="Papà"
-            required
-            autoFocus
-          />
-          <datalist id={`ospiti-${unclaimedTripId}`}>
-            {guests.map((g) => (
-              <option key={g} value={g} />
-            ))}
-          </datalist>
-          <SecondaryButton type="submit" disabled={guestPending}>
-            Addebita a chi ho scritto
+          <ErrorBanner>{assignState.error}</ErrorBanner>
+          <label className="block text-[13px] font-semibold text-ink-dim">
+            Assegna a (admin)
+            <select
+              name="userId"
+              required
+              defaultValue=""
+              className="mt-1 block min-h-12 w-full rounded-2xl glass-2 px-4 text-base text-ink"
+            >
+              <option value="" disabled>
+                Scegli chi…
+              </option>
+              {assignees.map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <SecondaryButton type="submit" disabled={assignPending}>
+            Assegna la corsa
           </SecondaryButton>
         </form>
-      ) : (
-        <SecondaryButton type="button" onClick={() => setApertoOspite(true)}>
-          È stato qualcun altro (papà, un amico…)
-        </SecondaryButton>
-      )}
+      ) : null}
     </div>
   );
 }

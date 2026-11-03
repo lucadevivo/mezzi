@@ -277,36 +277,44 @@ export function resolveExpiredUnclaimed(now = new Date()): ResolvedUnclaimed[] {
   return closed;
 }
 
-/** Km della nonna (o di chiunque non sia fatturabile): registrati, addebitati a lei. */
-export function assignUnclaimedToNonBillable(
+/**
+ * L'admin assegna la corsa a chi l'ha fatta: un utente vero (addebitata come un reclamo)
+ * o un non fatturabile come la nonna (registrata a lei, fuori dai conti tra fratelli).
+ * Il controllo admin sta nell'azione: qui si fida di chi chiama.
+ */
+export function assignUnclaimed(
   unclaimedTripId: string,
-  nonBillableUserId: string,
+  targetUserId: string,
   actorId: string,
   now = new Date(),
 ): void {
-  const target = db.select().from(user).where(eq(user.id, nonBillableUserId)).get();
-  if (!target || target.billable) {
-    throw new UnclaimedError('Questa azione vale solo per utenti non fatturabili');
-  }
+  const target = db.select().from(user).where(eq(user.id, targetUserId)).get();
+  if (!target) throw new UnclaimedError('Utente inesistente');
+  const row = db.select().from(unclaimedTrips).where(eq(unclaimedTrips.id, unclaimedTripId)).get();
+  if (!row) throw new UnclaimedError('Corsa da reclamare inesistente');
+  if (row.status !== 'pending') throw new UnclaimedError('Questa corsa è già stata risolta');
 
   db.transaction((tx) => {
     applyResolution(
       unclaimedTripId,
-      { status: 'claimed', chargedTo: [nonBillableUserId], reason: 'claimed' },
+      { status: 'claimed', chargedTo: [targetUserId], reason: 'claimed' },
       now,
       tx,
     );
     tx.update(unclaimedTrips)
-      .set({ status: 'non_billable', resolutionNote: `Assegnata a ${target.name}` })
+      .set({
+        status: target.billable ? 'claimed' : 'non_billable',
+        resolutionNote: `Assegnata a ${target.name} dall'admin`,
+      })
       .where(eq(unclaimedTrips.id, unclaimedTripId))
       .run();
     logAudit(
       {
         userId: actorId,
-        action: 'unclaimed.non_billable',
+        action: 'unclaimed.assign',
         entityType: 'unclaimed_trip',
         entityId: unclaimedTripId,
-        payload: { assignedTo: nonBillableUserId },
+        payload: { assignedTo: targetUserId },
         occurredAt: now,
       },
       tx,
