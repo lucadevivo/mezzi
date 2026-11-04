@@ -93,7 +93,7 @@ export function RefuelForm({
           name="payerId"
           value={payerId}
           onChange={(e) => setPayerId(e.target.value)}
-          className="min-h-12 w-full rounded-2xl glass-2 px-3 text-base text-ink"
+          className="min-h-12 w-full rounded-lg glass-2 px-3 text-base text-ink"
         >
           {payers.map((p) => (
             <option key={p.id} value={p.id}>

@@ -57,17 +57,19 @@ export function TankGauge({
       {/* Quadrante e lettura affiancati: in colonna mangiavano mezzo schermo. */}
       <div className="flex items-center gap-3">
       <svg
-        viewBox="22 6 156 108"
-        className={`w-[150px] shrink-0 ${known ? '' : 'opacity-40'}`}
+        viewBox="22 6 156 122"
+        className="w-[150px] shrink-0"
         role="img"
         aria-hidden="true"
       >
-        <path d={arc(0, 1)} fill="none" stroke="var(--color-line)" strokeWidth="9" strokeLinecap="round" />
-        {/* La riserva: sul cruscotto è il pezzo rosso appena sopra lo zero. */}
-        <path d={arc(0, 0.12)} fill="none" stroke="var(--color-debt)" strokeWidth="9" strokeLinecap="round" />
-        {[0, 0.25, 0.5, 0.75, 1].map((tick) => {
-          const outer = pointOnArc(tick, 66);
-          const inner = pointOnArc(tick, tick % 0.5 === 0 ? 52 : 58);
+        {/* Arco bianco sottile con le tacche, come l'indicatore piccolo del quadro. */}
+        <path d={arc(0, 1)} fill="none" stroke="var(--color-tick)" strokeWidth="2" />
+        {/* La riserva: il tratto rosso appena sopra lo zero. */}
+        <path d={arc(0, 0.12, 70)} fill="none" stroke="var(--color-debt)" strokeWidth="6" />
+        {[0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1].map((tick) => {
+          const major = tick % 0.5 === 0;
+          const outer = pointOnArc(tick, R);
+          const inner = pointOnArc(tick, major ? 60 : 66);
           return (
             <line
               key={tick}
@@ -75,33 +77,43 @@ export function TankGauge({
               y1={outer.y}
               x2={inner.x}
               y2={inner.y}
-              stroke="var(--color-ink-dim)"
-              strokeWidth={tick % 0.5 === 0 ? 3 : 2}
-              strokeLinecap="round"
+              stroke="var(--color-tick)"
+              strokeWidth={major ? 2.5 : 1.5}
             />
           );
         })}
 
-        <text x="34" y="108" fill="var(--color-ink-dim)" fontSize="12">
+        <text x="30" y="110" fill="var(--color-ink-dim)" fontSize="12">
           0
         </text>
-        <text x="92" y="20" fill="var(--color-ink-dim)" fontSize="12">
+        <text x="91" y="20" fill="var(--color-ink-dim)" fontSize="12">
           1/2
         </text>
-        <text x="160" y="108" fill="var(--color-ink-dim)" fontSize="12">
+        <text x="164" y="110" fill="var(--color-ink-dim)" fontSize="12">
           1
         </text>
 
+        {/* Pompa sotto il perno, dove la lancetta non passa mai; freccia = lato del bocchettone. */}
+        <g transform="translate(92 108) scale(0.8)" fill="none" stroke="var(--color-ink-dim)" strokeWidth="1.6">
+          <rect x="0" y="2" width="11" height="15" rx="1" />
+          <line x1="2.5" y1="6.5" x2="8.5" y2="6.5" />
+          <path d="M11 6 l3 2 v7 a1.5 1.5 0 0 0 3 0 v-9 l-2 -2" />
+          <path d="M21 10 h4 m0 0 l-2 -2 m2 2 l-2 2" />
+        </g>
+
+        {/* Lancetta acqua che si illumina; «non guardata» = grigia tratteggiata. */}
         <line
           x1="100"
           y1="100"
           x2={needle.x}
           y2={needle.y}
-          stroke="var(--color-ink)"
-          strokeWidth="4"
+          stroke={known ? 'var(--color-accent)' : 'var(--color-ink-dim)'}
+          strokeWidth="3.5"
           strokeLinecap="round"
+          strokeDasharray={known ? undefined : '4 4'}
+          style={known ? { filter: 'drop-shadow(0 0 4px var(--color-accent))' } : undefined}
         />
-        <circle cx="100" cy="100" r="6" fill="var(--color-ink)" />
+        <circle cx="100" cy="100" r="6" fill="var(--color-surface-2)" stroke="var(--color-line)" />
       </svg>
 
         <div className="min-w-0">
@@ -125,7 +137,7 @@ export function TankGauge({
         value={shown}
         aria-label="Livello del serbatoio dopo il rifornimento"
         onChange={(e) => onChange(Number(e.target.value))}
-        className="-mt-1 h-9 w-full cursor-pointer appearance-none rounded-full bg-transparent [&::-moz-range-thumb]:size-7 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-ink [&::-moz-range-track]:h-1.5 [&::-moz-range-track]:rounded-full [&::-moz-range-track]:bg-surface-2 [&::-webkit-slider-runnable-track]:h-1.5 [&::-webkit-slider-runnable-track]:rounded-full [&::-webkit-slider-runnable-track]:bg-surface-2 [&::-webkit-slider-thumb]:-mt-[11px] [&::-webkit-slider-thumb]:size-7 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-ink"
+        className="-mt-1 h-9 w-full cursor-pointer appearance-none rounded-full bg-transparent [&::-moz-range-thumb]:size-7 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-accent [&::-moz-range-track]:h-1.5 [&::-moz-range-track]:rounded-full [&::-moz-range-track]:bg-surface-2 [&::-webkit-slider-runnable-track]:h-1.5 [&::-webkit-slider-runnable-track]:rounded-full [&::-webkit-slider-runnable-track]:bg-surface-2 [&::-webkit-slider-thumb]:-mt-[11px] [&::-webkit-slider-thumb]:size-7 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-accent"
       />
 
       <input type="hidden" name={name} value={value === null ? '' : String(value)} />

@@ -34,7 +34,7 @@ function LoginForm() {
   return (
     <form action={onSubmit} className="glass space-y-4 rounded-[var(--radius-card)] p-5">
       {justRegistered ? (
-        <p className="rounded-2xl border border-line bg-surface-2 px-4 py-3 text-ink">
+        <p className="rounded-lg border border-line bg-surface-2 px-4 py-3 text-ink">
           Account creato. Entra con le tue credenziali.
         </p>
       ) : null}

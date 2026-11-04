@@ -1,11 +1,11 @@
 import type { Metadata, Viewport } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
+import { Barlow, Barlow_Semi_Condensed } from 'next/font/google';
 import './globals.css';
 
-// Gli stessi dell'app delle pizze. `next/font` li serve dal nostro dominio: nessuna
-// chiamata a Google a runtime, e la PWA continua a funzionare senza rete.
-const geistSans = Geist({ variable: '--font-geist-sans', subsets: ['latin'] });
-const geistMono = Geist_Mono({ variable: '--font-geist-mono', subsets: ['latin'] });
+// Barlow: disegno da strumentazione, il sostituto libero del carattere del cruscotto.
+// `next/font` lo serve dal nostro dominio: niente Google a runtime, la PWA va offline.
+const barlow = Barlow({ variable: '--font-barlow', subsets: ['latin'], weight: ['300', '400', '500', '600'] });
+const barlowSc = Barlow_Semi_Condensed({ variable: '--font-barlow-sc', subsets: ['latin'], weight: ['400', '500', '600'] });
 
 export const metadata: Metadata = {
   title: 'Mezzi',
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#0a0a0a',
+  themeColor: '#000000',
   // Il tastierino numerico non deve zoomare la pagina quando si tocca un campo.
   maximumScale: 1,
   // Le luci d'ambiente e la barra in basso arrivano fino al bordo del telefono.
@@ -24,7 +24,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="it" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
+    <html lang="it" className={`${barlow.variable} ${barlowSc.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col">{children}</body>
     </html>
   );

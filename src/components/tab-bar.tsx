@@ -78,7 +78,7 @@ export function TabBar({ claims }: { claims: number }) {
   return (
     <nav
       aria-label="Sezioni"
-      className="glass fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+10px)] z-30 mx-auto flex max-w-[26rem] rounded-[26px] px-1.5 py-1.5"
+      className="glass fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+10px)] z-30 mx-auto flex max-w-[26rem] rounded-[var(--radius-card)] px-1.5 py-1.5"
     >
       {TABS.map((tab) => {
         // "/" è attiva solo esatta, altrimenti resterebbe accesa ovunque.
@@ -89,8 +89,8 @@ export function TabBar({ claims }: { claims: number }) {
             key={tab.href}
             href={tab.href}
             aria-current={active ? 'page' : undefined}
-            className={`relative flex min-h-14 flex-1 flex-col items-center justify-center gap-0.5 rounded-[20px] text-[11px] font-medium transition-[color,background-color,transform] duration-200 active:scale-95 ${
-              active ? 'bg-accent/15 text-accent' : 'text-ink-dim'
+            className={`relative flex min-h-14 flex-1 flex-col items-center justify-center gap-0.5 rounded-md text-[11px] font-medium transition-[color,background-color,transform] duration-200 active:scale-95 ${
+              active ? 'bg-accent/10 text-accent [&_svg]:drop-shadow-[0_0_6px_var(--color-accent)]' : 'text-ink-dim'
             }`}
           >
             {tab.icon}

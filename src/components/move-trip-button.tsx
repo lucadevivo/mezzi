@@ -38,7 +38,7 @@ export function MoveTripButton({
           name="userId"
           required
           defaultValue=""
-          className="mt-1 block min-h-12 w-full rounded-2xl glass-2 px-4 text-base text-ink"
+          className="mt-1 block min-h-12 w-full rounded-lg glass-2 px-4 text-base text-ink"
         >
           <option value="" disabled>
             Scegli chi…

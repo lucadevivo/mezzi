@@ -162,7 +162,7 @@ function StartTrip({
       {check?.kind === 'open_trip' ? <p className="text-ink-dim">{check.message}</p> : null}
 
       {check?.kind === 'unclaimed' ? (
-        <div className="space-y-3 rounded-2xl border border-accent/40 bg-accent/10 p-4">
+        <div className="space-y-3 rounded-lg border border-accent/40 bg-accent/10 p-4">
           <p className="font-semibold text-ink">
             {formatKm(check.distanceKm ?? 0)} non registrati su questo mezzo
           </p>
@@ -267,7 +267,7 @@ function CloseTrip({
       </button>
 
       {showPassengers ? (
-        <fieldset className="space-y-2 rounded-2xl border border-line p-3">
+        <fieldset className="space-y-2 rounded-lg border border-line p-3">
           <legend className="px-1 text-sm text-ink-dim">
             Il costo si divide tra chi era a bordo
           </legend>
@@ -330,7 +330,7 @@ function CloseTrip({
   if (trip.pending) {
     return (
       <div className="space-y-4">
-        <p className="rounded-2xl border border-accent/40 bg-accent/10 px-4 py-3 text-sm text-accent">
+        <p className="rounded-lg border border-accent/40 bg-accent/10 px-4 py-3 text-sm text-accent">
           Corsa avviata senza rete: parte da sola appena torna il segnale.
         </p>
         {fields}

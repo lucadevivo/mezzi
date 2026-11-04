@@ -47,7 +47,7 @@ export function HistoryFilters({
     router.push(search ? `/storico?${search}` : '/storico');
   };
 
-  const select = 'min-h-11 w-full rounded-2xl glass-2 px-3 text-base text-ink';
+  const select = 'min-h-11 w-full rounded-lg glass-2 px-3 text-base text-ink';
 
   const TIPI = [
     { value: undefined, label: 'Tutto' },
@@ -105,7 +105,7 @@ export function HistoryFilters({
         </select>
       ) : null}
 
-      <div className="grid grid-cols-3 gap-1 rounded-2xl border border-line bg-surface-2 p-1">
+      <div className="grid grid-cols-3 gap-1 rounded-lg border border-line bg-surface-2 p-1">
         {TIPI.map((tipo) => {
           const active = (filters.tipo ?? undefined) === tipo.value;
           return (
@@ -114,7 +114,7 @@ export function HistoryFilters({
               type="button"
               aria-pressed={active}
               onClick={() => go({ tipo: tipo.value })}
-              className={`min-h-10 rounded-xl text-sm font-medium transition-colors ${
+              className={`min-h-10 rounded-md text-sm font-medium transition-colors ${
                 active ? 'bg-accent text-accent-ink' : 'text-ink-dim'
               }`}
             >

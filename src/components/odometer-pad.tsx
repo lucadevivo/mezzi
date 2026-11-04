@@ -46,21 +46,30 @@ export function OdometerPad({
 
       <label className="block">
         <span className="mb-1 block text-sm text-ink-dim">{label}</span>
-        <input
-          inputMode="none"
-          readOnly
-          value={value}
-          aria-label={label}
-          onFocus={() => setPadOpen(true)}
-          onClick={() => setPadOpen(true)}
-          className="tabular min-h-16 w-full rounded-2xl glass-2 px-4 text-3xl text-ink"
-        />
+        {/* La lettura come sul display: icona, numero grande, «km» piccolo, cursore acqua. */}
+        <span className="relative flex min-h-16 items-center gap-3 rounded-lg glass px-4 focus-within:border-accent">
+          <OdoIcon />
+          <input
+            inputMode="none"
+            readOnly
+            value={value}
+            aria-label={label}
+            onFocus={() => setPadOpen(true)}
+            onClick={() => setPadOpen(true)}
+            className="tabular min-w-0 flex-1 bg-transparent text-[34px] font-light text-ink caret-transparent focus:outline-none"
+            // Il focus lo mostra il bordo acqua della cella, non un rettangolo attorno alle cifre.
+            style={{ width: `${Math.max(value.length, 1) + 0.5}ch`, flex: 'none', outline: 'none' }}
+          />
+          {padOpen ? <span aria-hidden="true" className="-ml-2 h-8 w-[2px] animate-pulse bg-accent" /> : null}
+          <span className="text-sm text-ink-dim">km</span>
+        </span>
       </label>
       {hint ? <p className="mt-1 text-xs text-ink-dim">{hint}</p> : null}
 
       {padOpen ? (
         <div className="mt-3 space-y-2">
-          <div className="grid grid-cols-3 gap-2">
+          {/* Griglia del display: tasti neri, righe sottili (il gap da 1px lascia vedere la linea). */}
+          <div className="grid grid-cols-3 gap-px overflow-hidden rounded-lg border border-line bg-line">
             {KEYS.map((key) => (
               <button
                 key={key}
@@ -69,7 +78,7 @@ export function OdometerPad({
                   key === '⌫' ? 'Cancella una cifra' : key === ',' ? 'Virgola' : key
                 }
                 onClick={() => press(key)}
-                className="tabular min-h-16 rounded-2xl glass-2 text-2xl text-ink active:bg-surface"
+                className="tabular min-h-16 bg-base text-[28px] font-light text-ink transition-colors duration-75 active:bg-surface-2 active:text-accent active:[text-shadow:0_0_12px_var(--color-accent)]"
               >
                 {key}
               </button>
@@ -80,14 +89,14 @@ export function OdometerPad({
             <button
               type="button"
               onClick={() => onChange('')}
-              className="min-h-12 rounded-2xl border border-line text-base text-ink-dim"
+              className="min-h-12 rounded-lg border border-line text-base text-ink-dim"
             >
               Azzera
             </button>
             <button
               type="button"
               onClick={() => setPadOpen(false)}
-              className="min-h-12 rounded-2xl border border-line text-base text-ink-dim"
+              className="min-h-12 rounded-lg border border-line text-base text-ink-dim"
             >
               Fatto
             </button>
@@ -95,5 +104,15 @@ export function OdometerPad({
         </div>
       ) : null}
     </div>
+  );
+}
+
+function OdoIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="size-6 shrink-0 text-ink-dim" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">
+      <path d="M4 17a8 8 0 1 1 16 0" strokeLinecap="round" />
+      <path d="M12 17l4-5" strokeLinecap="round" />
+      <circle cx="12" cy="17" r="1.4" fill="currentColor" />
+    </svg>
   );
 }

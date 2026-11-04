@@ -21,7 +21,7 @@ export default async function AdminPage() {
         <InviteGenerator />
         <Link
           href="/admin/audit"
-          className="flex min-h-12 w-full items-center justify-center rounded-2xl glass-2 text-base font-medium"
+          className="flex min-h-12 w-full items-center justify-center rounded-lg glass-2 text-base font-medium"
         >
           Audit log
         </Link>

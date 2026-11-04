@@ -158,7 +158,7 @@ export default async function StatsPage() {
             <a
               key={item.kind}
               href={`/api/export/${item.kind}`}
-              className="flex min-h-12 items-center justify-center rounded-2xl glass-2 text-base text-ink"
+              className="flex min-h-12 items-center justify-center rounded-lg glass-2 text-base text-ink"
             >
               {item.label}
             </a>
@@ -166,7 +166,7 @@ export default async function StatsPage() {
         </div>
         <Link
           href="/riepilogo"
-          className="flex min-h-12 w-full items-center justify-center rounded-2xl glass-2 text-base text-ink"
+          className="flex min-h-12 w-full items-center justify-center rounded-lg glass-2 text-base text-ink"
         >
           Riepilogo mensile stampabile
         </Link>

@@ -1,35 +1,33 @@
 @import 'tailwindcss';
 
 /*
- * "Vetro": lastre traslucide su fondo notturno, i pannelli di iOS. Niente luci
- * d'ambiente: il fondo è nero pieno, e il blur resta dove serve davvero — sotto
- * la tab bar e i pulsanti che galleggiano sopra il contenuto che scorre.
- *
- * La palette è quella della modalità scura dell'app dei turni: neutri puri,
- * zero croma, azione primaria bianca. `surface` e `surface-2` sono bianchi
- * trasparenti che sul fondo cadono esattamente sui suoi grigi (0.205 e 0.269).
+ * "Quadro di bordo": il cruscotto della Fiesta di sera. Nero pieno, cifre bianche
+ * sottili, lancette color acqua. Il rosso c'è solo sul debito e sulla riserva,
+ * ambra e verde solo come spie. Ogni pannello è una cella del display centrale:
+ * righe sottili, niente vetro, niente ombre.
  */
 @theme {
-  --color-base: #0a0a0a;
-  --color-surface: oklch(1 0 0 / 8%);
-  --color-surface-2: oklch(1 0 0 / 14%);
-  --color-line: oklch(1 0 0 / 10%);
-  --color-ink: oklch(0.985 0 0);
-  --color-ink-dim: oklch(0.708 0 0);
-  --color-accent: oklch(0.922 0 0);
-  --color-accent-ink: oklch(0.205 0 0);
-  /* Gli unici due colori vivi, e stanno solo sul saldo: rosso se devi dei soldi,
-     verde se ne hai messi più degli altri, grigio se sei in pari. Il rosso è il
-     destructive dei turni, il verde gli sta a fianco per croma e luminosità. */
-  --color-debt: oklch(0.704 0.191 22.216);
-  --color-credit: oklch(0.76 0.16 152);
+  --color-base: #000000;
+  --color-surface: #07090a;
+  --color-surface-2: #111416;
+  --color-line: #2b3034;
+  --color-ink: #f3f6f7;
+  --color-ink-dim: #9ba4a9;
+  /* L'acqua delle lancette: ciò che tocchi (lancetta, scheda attiva, focus). */
+  --color-accent: #2de3d4;
+  --color-accent-ink: #001a18;
+  --color-debt: #ff4136;
+  --color-credit: #3ad763;
+  --color-warn: #ffae1f;
+  --color-tick: #d9dee0;
 
-  /* Gli stessi dell'app delle pizze. */
-  --font-sans: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-  /* I numeri in mono: cifre di uguale larghezza, il contachilometri non balla. */
-  --font-numeric: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+  /* Il carattere del cruscotto è proprietario: Barlow è il sostituto libero più vicino. */
+  --font-sans: var(--font-barlow), 'Helvetica Neue', system-ui, sans-serif;
+  --font-display: var(--font-barlow-sc), var(--font-barlow), system-ui, sans-serif;
+  --font-numeric: var(--font-barlow), 'Helvetica Neue', system-ui, sans-serif;
 
-  --radius-card: 22px;
+  --radius-card: 8px;
+  --radius-key: 0;
 
   /* Scala z: nessun 9999 sparso per i file. */
   --z-sticky: 20;
@@ -52,46 +50,57 @@ body {
 }
 
 @layer components {
-  /* La lastra. Bordo chiaro in alto = riflesso speculare, è quello che fa
-     leggere il pannello come vetro invece che come rettangolo trasparente. */
+  /* La cella del display: fondo appena sopra il nero, una riga sottile intorno.
+     Il nome resta "glass" per non toccare ogni file che la usa. */
   .glass {
     background: var(--color-surface);
-    backdrop-filter: blur(28px) saturate(180%);
-    -webkit-backdrop-filter: blur(28px) saturate(180%);
     border: 1px solid var(--color-line);
-    box-shadow:
-      inset 0 1px 0 oklch(1 0 0 / 16%),
-      0 10px 34px oklch(0 0 0 / 38%);
   }
 
-  /* Il livello interno: traslucido sopra la lastra, che il blur ce l'ha già.
-     Un secondo backdrop-filter qui costerebbe GPU senza cambiare niente. */
+  /* Il livello interno: campi e tasti dentro la cella. */
   .glass-2 {
     background: var(--color-surface-2);
     border: 1px solid var(--color-line);
   }
 
-  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-    .glass {
-      background: oklch(0.26 0.02 265);
-    }
+  /* Spia del quadro: anello spento, o pallino acceso che fa un po' di alone. */
+  .lamp {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    flex: none;
+    border-radius: 9999px;
+    border: 1.5px solid var(--color-ink-dim);
+    opacity: 0.6;
+  }
+  .lamp-on {
+    border-color: currentColor;
+    background: currentColor;
+    opacity: 1;
+    box-shadow: 0 0 8px currentColor;
   }
 }
 
-/* I numeri del contachilometri non devono ballare mentre si aggiornano: cifre
-   di uguale larghezza, e lining perché Georgia di suo le farebbe minuscole. */
+/* Le cifre del contachilometri non ballano: tabulari, peso basso come sul quadro. */
 .tabular {
   font-family: var(--font-numeric);
   font-variant-numeric: lining-nums tabular-nums;
   letter-spacing: 0;
 }
 
-/* Titolone iOS: 34px semibold, tracking stretto. */
+/* Titolo come le scritte del display: semi condensato, peso medio. */
 .title-lg {
-  font-size: 34px;
+  font-family: var(--font-display);
+  font-size: 32px;
   line-height: 1.08;
-  font-weight: 700;
-  letter-spacing: -0.028em;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+h1,
+h2,
+legend {
+  font-family: var(--font-display);
 }
 
 /* Si usa con una mano, in piedi, al buio: niente ritardi da doppio tap. */
