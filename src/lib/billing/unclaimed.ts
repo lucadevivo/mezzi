@@ -36,21 +36,21 @@ export function claimDeadline(detectedAt: Date, hours = DEFAULT_CLAIM_DEADLINE_H
 /**
  * Macchina a stati della corsa da reclamare (Sezione 4.5).
  *
- * Sullo split: chi ha rilevato la discrepanza ed è l'unico ad averla dichiarata non sua
- * viene escluso dalla divisione. È voluto ed è il deterrente: chi si accorge del problema
- * e lo segnala non ci rimette. Se questo lascia l'insieme vuoto, pagano tutti.
+ * Niente più divisione automatica: la corsa resta da reclamare finché qualcuno non la
+ * prende («sono miei») o l'admin non la assegna. Non c'è un termine che la chiuda da sé.
+ * Il solo caso che risolve qui è il reclamo esplicito; tutto il resto resta `pending`.
+ * Quando resta un solo silenzioso lo si segnala come probabile autore (solo un suggerimento
+ * per l'admin, nessun addebito automatico).
  */
 export function resolveUnclaimed(input: ResolveUnclaimedInput): UnclaimedResolution {
-  const { billableMemberIds, detectedByUserId, responses, deadlineAt, now } = input;
-
-  const members = [...new Set(billableMemberIds)];
+  const members = [...new Set(input.billableMemberIds)];
   if (members.length === 0) {
     throw new Error('Corsa da reclamare senza membri fatturabili');
   }
 
   // A parità di utente vale l'ultima risposta data.
   const latest = new Map<UserId, ClaimResponse>();
-  for (const response of [...responses].sort(
+  for (const response of [...input.responses].sort(
     (a, b) => a.answeredAt.getTime() - b.answeredAt.getTime(),
   )) {
     latest.set(response.userId, response);
@@ -60,23 +60,5 @@ export function resolveUnclaimed(input: ResolveUnclaimedInput): UnclaimedResolut
   if (claimants.length > 0) return { status: 'claimed', chargedTo: claimants, reason: 'claimed' };
 
   const awaiting = members.filter((id) => !latest.has(id));
-  const expired = now.getTime() >= deadlineAt.getTime();
-
-  // Eliminazione: se resta un solo membro che non ha risposto, la corsa è verosimilmente sua.
-  // Gli si propone l'attribuzione e, se lascia scadere il termine senza contestare, gli viene addebitata.
-  if (awaiting.length === 1) {
-    return expired
-      ? { status: 'claimed', chargedTo: awaiting, reason: 'elimination' }
-      : { status: 'pending', awaiting, autoAssignCandidate: awaiting[0] };
-  }
-
-  if (awaiting.length > 1 && !expired) {
-    return { status: 'pending', awaiting, autoAssignCandidate: null };
-  }
-
-  const detectorDenied = latest.get(detectedByUserId)?.answer === 'not_mine';
-  const withoutDetector = members.filter((id) => id !== detectedByUserId);
-  const chargedTo = detectorDenied && withoutDetector.length > 0 ? withoutDetector : members;
-
-  return { status: 'split', chargedTo };
+  return { status: 'pending', awaiting, autoAssignCandidate: awaiting.length === 1 ? awaiting[0] : null };
 }

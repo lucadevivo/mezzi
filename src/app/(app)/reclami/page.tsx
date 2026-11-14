@@ -5,7 +5,7 @@ import { requireUser } from '@/lib/auth/session';
 import { claimStatsFor } from '@/lib/services/history';
 import { db } from '@/lib/db';
 import { unclaimedTripResponses, unclaimedTrips, user, vehicles } from '@/lib/db/schema';
-import { formatDay, formatEuro, formatKm, formatRemaining } from '@/lib/format';
+import { formatDay, formatEuro, formatKm } from '@/lib/format';
 import { currentResolution } from '@/lib/services/unclaimed';
 
 export const dynamic = 'force-dynamic';
@@ -94,9 +94,9 @@ export default async function ClaimsPage() {
             {row.status === 'pending' ? (
               <>
                 <p className="text-sm text-accent">
-                  Termine: {formatRemaining(row.deadlineAt, now)}
+                  Da reclamare
                   {resolution?.status === 'pending' && resolution.autoAssignCandidate
-                    ? ` · se nessuno risponde, vanno a ${names.get(resolution.autoAssignCandidate) ?? '?'}`
+                    ? ` · probabilmente di ${names.get(resolution.autoAssignCandidate) ?? '?'}`
                     : ''}
                 </p>
                 <ClaimButtons
@@ -129,8 +129,8 @@ export default async function ClaimsPage() {
       })}
 
       <p className="text-xs text-ink-dim">
-        Le risposte sono visibili a tutti. Se nessuno reclama entro il termine, il costo si divide
-        tra i membri del mezzo: negare non conviene mai rispetto a dire la verità.
+        Le risposte sono visibili a tutti. Una corsa non registrata resta qui finché qualcuno non
+        la reclama o l’admin non la assegna: non si divide più da sola allo scadere di un termine.
       </p>
     </div>
   );

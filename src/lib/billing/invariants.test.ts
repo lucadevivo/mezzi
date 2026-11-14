@@ -3,7 +3,6 @@ import { autonomyInTankKm, balances, kmBought, ledgerTotalKm } from './balance';
 import { evaluateOdometerReading } from './discrepancy';
 import { referencePrice, tankState, type TankEvent } from './price';
 import { splitTripKm, tripCost } from './trip';
-import { resolveUnclaimed } from './unclaimed';
 import type { LedgerEntry, Refuel } from './types';
 
 /**
@@ -94,26 +93,16 @@ describe('invarianti su uno scenario completo', () => {
       unitPriceCents: unclaimedPrice.pricePerLiterCents,
     });
 
-    const resolution = resolveUnclaimed({
-      billableMemberIds: billableMembers,
-      detectedByUserId: 'luca',
-      responses: billableMembers.map((userId) => ({
-        userId,
-        answer: 'not_mine' as const,
-        answeredAt: day(13),
-      })),
-      deadlineAt: day(14),
-      now: day(13),
-    });
-    expect(resolution).toEqual({ status: 'split', chargedTo: ['marco', 'giulia'] });
-    if (resolution.status !== 'split') throw new Error('scenario incoerente');
-
-    for (const [id, km] of splitTripKm(150, resolution.chargedTo[0], resolution.chargedTo)) {
+    // La corsa non registrata resta da reclamare finché non la si attribuisce: non c'è
+    // più divisione automatica. Qui l'admin l'ha divisa tra i membri, ed è l'attribuzione
+    // che deve far tornare il contachilometri.
+    const chargedTo = billableMembers;
+    for (const [id, km] of splitTripKm(150, chargedTo[0], chargedTo)) {
       charge(id, km, detectedAt);
     }
     tankEvents.push({ kind: 'consumption', at: detectedAt, liters: unclaimedCost.litersEstimated });
     // I km restano attribuiti a chi li paga: è così che il totale torna col contachilometri.
-    for (const id of resolution.chargedTo) addKm(id, 150 / resolution.chargedTo.length);
+    for (const id of chargedTo) addKm(id, 150 / chargedTo.length);
 
     // La nonna usa la 500 ma qui prende la Fiesta: km registrati, addebito su di lei,
     // che è un utente non fatturabile e resta fuori dai conti tra fratelli.

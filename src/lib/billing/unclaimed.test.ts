@@ -67,33 +67,32 @@ describe('resolveUnclaimed', () => {
     });
   });
 
-  it('chiude per eliminazione se il silenzioso lascia scadere il termine', () => {
+  it('non chiude per eliminazione allo scadere: resta da reclamare', () => {
     const resolution = resolve(
       [answer('luca', 'not_mine'), answer('marco', 'not_mine')],
       afterDeadline,
     );
-    expect(resolution).toEqual({ status: 'claimed', chargedTo: ['giulia'], reason: 'elimination' });
+    expect(resolution).toEqual({
+      status: 'pending',
+      awaiting: ['giulia'],
+      autoAssignCandidate: 'giulia',
+    });
   });
 
-  it('divide tra tutti tranne chi ha rilevato e negato, se negano tutti', () => {
+  it('non divide se negano tutti: resta da reclamare, nessuno addebitato', () => {
     const resolution = resolve(
       [answer('luca', 'not_mine'), answer('marco', 'not_mine'), answer('giulia', 'not_mine')],
       beforeDeadline,
     );
-    expect(resolution).toEqual({ status: 'split', chargedTo: ['marco', 'giulia'] });
+    expect(resolution).toEqual({ status: 'pending', awaiting: [], autoAssignCandidate: null });
   });
 
-  it('divide tra tutti se nessuno risponde entro il termine', () => {
-    expect(resolve([], afterDeadline)).toEqual({ status: 'split', chargedTo: members });
-  });
-
-  it('divide tra tutti se chi ha rilevato non è un membro fatturabile', () => {
-    const resolution = resolve(
-      [answer('marco', 'not_mine'), answer('giulia', 'not_mine'), answer('luca', 'not_mine')],
-      afterDeadline,
-      'nonna',
-    );
-    expect(resolution).toEqual({ status: 'split', chargedTo: members });
+  it('non divide se nessuno risponde, qualunque sia il tempo passato', () => {
+    expect(resolve([], afterDeadline)).toEqual({
+      status: 'pending',
+      awaiting: members,
+      autoAssignCandidate: null,
+    });
   });
 
   it('tiene buona l ultima risposta se un utente cambia idea', () => {
